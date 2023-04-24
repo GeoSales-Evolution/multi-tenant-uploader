@@ -16,12 +16,12 @@ app.post('/upload', (req: express.Request, res: express.Response) => {
     })
 
     req.on('end', () => {
-      fs.writeFile(path.join(__dirname, '../uploads/', filename), Buffer.concat(data), (err: NodeJS.ErrnoException | null) => {
+      fs.writeFile(path.join(__dirname, '../../uploads/', filename), Buffer.concat(data), (err: NodeJS.ErrnoException | null) => {
         if (err) {
           console.error(err)
           res.status(500).send('Error saving file')
         } else {
-          console.log('File saved')
+          console.log(`File ${filename} saved`)
           res.end(`File ${filename} saved.`)
         }
       })

@@ -1,14 +1,20 @@
 #!/bin/bash
 export LC_ALL=C.UTF-8 #prevents grep error
 
+source ./auth_vars
 url=localhost:3003/upload
+
 filePath=$1
 filename=$(echo "$filePath" | grep -oP "(?<=/)[^/]+$")
-
-options='-X POST '
-response=$(curl $options \
+ 
+response=$(curl -X POST \
     -H "Content-Type: application/octet-stream" \
     -H "Content-Disposition: attachment; filename=${filename}" \
     --data-binary "@${filePath}" \
-    $url)
-printf '%s\n' "$response"
+    ${url}/${token}/${tenant}
+)
+
+echo $response
+
+
+#  printf "token=<token>\ntenant=<tenant>" > auth_vars && cat auth_vars

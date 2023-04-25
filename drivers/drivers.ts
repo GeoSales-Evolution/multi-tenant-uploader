@@ -45,3 +45,5 @@ const tenant2DriverMap =  new Map<string, Driver>([
     ["tenantF", amazonS3Driver],
     ["tenantG", dropboxDriver],
 ]);
+
+export default { tenant2DriverMap }

@@ -4,7 +4,6 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 const app = express()
-const port: number = 3003
 
 app.post('/upload', (req: express.Request, res: express.Response) => {
   if (req.headers['content-type'] === 'application/octet-stream') {
@@ -16,7 +15,7 @@ app.post('/upload', (req: express.Request, res: express.Response) => {
     })
 
     req.on('end', () => {
-      fs.writeFile(path.join(__dirname, '../../uploads/', filename), Buffer.concat(data), (err: NodeJS.ErrnoException | null) => {
+      fs.writeFile(`./uploads/${filename}`, Buffer.concat(data), (err: NodeJS.ErrnoException | null) => {
         if (err) {
           console.error(err)
           res.status(500).send('Error saving file')
@@ -31,10 +30,6 @@ app.post('/upload', (req: express.Request, res: express.Response) => {
   }
 })
 
-app.listen(port, () => {
-  console.log(`Express server listening on port ${port}`)
-})
-
 function getFilename(req: express.Request): string {
   const dispositionHeader: string | undefined = req.headers['content-disposition']
   const disposition: contentDisposition.ContentDisposition | null = dispositionHeader
@@ -43,3 +38,5 @@ function getFilename(req: express.Request): string {
 
   return disposition?.parameters.filename || 'default-filename.txt'
 }
+
+export default app

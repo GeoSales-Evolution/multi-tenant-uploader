@@ -1,24 +1,20 @@
 {
   "name": "multi-tenant-uploader",
+  "type": "module",
   "version": "0.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "api"
-  ],
   "scripts": {
-    "build:api": "cd api && tsc",
-    "start:api": "cd api/dist && node index.js"
-  },
-  "devDependencies": {
-    "eslint-config-custom": "*",
-    "prettier": "latest",
-    "turbo": "latest"
+    "build": "tsc",
+    "start": "node out/index.js"
   },
   "engines": {
     "node": ">=14.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@types/content-disposition": "^0.5.5",
+    "@types/express": "^4.17.17",
+    "express": "^4.18.2",
+    "typescript": "^5.0.4"
+  },
   "packageManager": "yarn@1.22.19"
 }

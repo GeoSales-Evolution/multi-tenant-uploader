@@ -1,10 +1,18 @@
 import * as contentDisposition from 'content-disposition'
+import * as dotenv from 'dotenv'
 import express from 'express'
 import * as fs from 'fs'
 import * as path from 'path'
 
 const app = express()
 const port: number = 3003
+
+dotenv.config()
+
+const hostname = process.env.HOST;
+
+console.log(">>>>>")
+console.log(hostname)
 
 
 app.post('/upload/:token/:tenant', (req: express.Request, res: express.Response) => {

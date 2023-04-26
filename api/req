@@ -15,6 +15,3 @@ response=$(curl -X POST \
 )
 
 echo $response
-
-
-#  printf "token=<token>\ntenant=<tenant>" > auth_vars && cat auth_vars

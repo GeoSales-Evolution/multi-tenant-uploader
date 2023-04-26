@@ -7,13 +7,6 @@ const app = express()
 const port: number = 3003
 
 
-app.post('/:token/:tenant', (req, res) => {
-  const { token, tenant } = req.params;
-  console.log(`Received token: ${token}, tenant: ${tenant}`);
-  res.send(`Token: ${token}, Tenant: ${tenant}`);
-});
-
-
 app.post('/upload/:token/:tenant', (req: express.Request, res: express.Response) => {
   const authUrl = "http://localhost:8090/authToken";
 

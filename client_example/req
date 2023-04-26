@@ -1,7 +1,7 @@
 #!/bin/bash
 export LC_ALL=C.UTF-8 #prevents grep error
 
-url=localhost:3003/upload
+url=localhost:3003/upload/tenantA
 filePath=$1
 filename=$(echo "$filePath" | grep -oP "(?<=/)[^/]+$")
 

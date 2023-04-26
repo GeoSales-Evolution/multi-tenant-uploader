@@ -19,4 +19,4 @@ type DropBoxDriver = {
 
 type Driver = DriverBase & (GoogleDriveDriver | AmazonS3Driver | DropBoxDriver)
 
-export {Driver, GoogleDriveDriver, AmazonS3Driver, DropBoxDriver }
+export { Driver }

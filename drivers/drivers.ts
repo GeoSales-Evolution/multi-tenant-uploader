@@ -36,14 +36,12 @@ const dropboxDriver: Driver = {
     particularInfoDB: "ok"
 }
 
-const tenant2DriverMap =  new Map<string, Driver>([
-    ["tenantA", googleDriveDriver],
-    ["tenantB", amazonS3Driver],
-    ["tenantC", dropboxDriver],
-    ["tenantD", googleDriveDriver],
-    ["tenantE", dropboxDriver],
-    ["tenantF", amazonS3Driver],
-    ["tenantG", dropboxDriver],
-]);
+const tenant2Driver = {
+    "tenantA": googleDriveDriver,
+    "tenantB": amazonS3Driver,
+    "tenantC": dropboxDriver,
+}
 
-export default { tenant2DriverMap }
+const tenant2DriverMap = new Map(Object.entries(tenant2Driver))
+
+export default tenant2DriverMap

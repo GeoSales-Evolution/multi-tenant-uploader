@@ -1,0 +1,15 @@
+export LC_ALL=C.UTF-8 #prevents grep error
+
+url=localhost:3003/upload
+
+filePath=$1
+filename=$(echo "$filePath" | grep -oP "(?<=/)[^/]+$")
+
+response=$(curl -X POST \
+    -H "Content-Type: application/octet-stream" \
+    -H "Content-Disposition: attachment; filename=${filename}" \
+    --data-binary "@${filePath}" \
+    ${url}
+)
+
+echo $response

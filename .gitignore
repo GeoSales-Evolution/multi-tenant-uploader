@@ -2,3 +2,6 @@
 #js transpilation files
 out/
 node_modules/
+
+client_example/auth_vars
+.env

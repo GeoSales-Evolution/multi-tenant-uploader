@@ -1,11 +1,15 @@
 import tenant2DriverMap from '../drivers/drivers.js'
 import * as contentDisposition from 'content-disposition'
+import * as dotenv from 'dotenv'
 import express from 'express'
 import * as fs from 'fs'
+import * as path from 'path'
 
 const app = express()
 
-app.post('/upload/:tenant', (req: express.Request, res: express.Response) => {
+dotenv.config()
+
+app.post('/upload/:token/:tenant', (req: express.Request, res: express.Response) => {
   if (req.headers['content-type'] === 'application/octet-stream') {
     let data: Buffer[] = []
     const filename: string = getFilename(req)

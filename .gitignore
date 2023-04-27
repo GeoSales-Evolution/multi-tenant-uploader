@@ -12,6 +12,8 @@ coverage
 .next/
 out/
 build
+.env
+/client_example/auth_vars
 
 # misc
 .DS_Store

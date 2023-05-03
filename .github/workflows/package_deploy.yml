@@ -1,0 +1,56 @@
+name: Deploy and Testing a GitHub Package
+
+on: [push]
+
+env:
+  REGISTRY: ghcr.io
+  DOCKER_IMAGE_NAME: geosales-evolution/multi-tenant-uploader
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t $REGISTRY/$DOCKER_IMAGE_NAME .
+
+      - name: Push Docker image to GitHub Packages
+        run: docker push $REGISTRY/$DOCKER_IMAGE_NAME
+
+
+  test-image-locally:
+    runs-on: ubuntu-latest
+    needs: build-and-push-image
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create .env file
+        run: |
+          echo "KEY=I'm Going Slightly Mad" > .env
+      
+      - name: Pull Docker image
+        run: docker pull $REGISTRY/$DOCKER_IMAGE_NAME
+
+      - name: Run Docker container
+        run: docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME

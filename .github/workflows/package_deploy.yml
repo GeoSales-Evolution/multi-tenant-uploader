@@ -4,7 +4,7 @@ on: [push]
 
 env:
   REGISTRY: ghcr.io
-  DOCKER_IMAGE_NAME: $(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+  DOCKER_IMAGE_NAME: echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'
 
 jobs:
   build-and-push-image:

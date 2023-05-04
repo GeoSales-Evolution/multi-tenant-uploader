@@ -5,6 +5,7 @@ on: [push]
 env:
    REGISTRY: ghcr.io
    DOCKER_IMAGE_NAME: ${{ github.repository }}
+   URL_AUTH_SERVICE: localhost:8090/authToken
 
 
 jobs:
@@ -51,7 +52,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "KEY=I'm Going Slightly Mad" > .env
+          echo "URL_AUTH_SERVICE=$URL_AUTH_SERVICE" > .env
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

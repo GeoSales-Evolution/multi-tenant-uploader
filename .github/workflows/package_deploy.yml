@@ -63,3 +63,4 @@ jobs:
       - name: Run Docker container
         run: docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME
         timeout-minutes: 1
+        continue-on-error: true

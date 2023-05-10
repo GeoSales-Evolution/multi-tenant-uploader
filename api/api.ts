@@ -36,6 +36,10 @@ app.post('/upload/:token/:tenant', (req: express.Request, res: express.Response)
                     })
                 }
             })
+            .catch((authError) => {
+                console.error(authError)
+                res.status(500).send('Error fetching Authentication API')
+            })
     } else {
         res.status(400).end('Bad Request')
     }

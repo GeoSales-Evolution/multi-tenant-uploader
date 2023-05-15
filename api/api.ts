@@ -8,10 +8,24 @@ dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE;
 
-app.post('/upload/:token/:tenant', (req: express.Request, res: express.Response) => {
+app.post('/upload/:tenant', (req: express.Request, res: express.Response) => {
     if (req.headers['content-type'] === 'application/octet-stream') {
+        const authHeader = req.headers['authorization']
+        if (!authHeader) {
+            console.log('Missing Authorization header')
+            res.status(401).end('Missing Authorization header')
+            return
+        }
+
+        const token = authHeader?.split(' ')[1]
+        if (!token) {
+            console.log('Missing bearer token')
+            res.status(401).end('Missing bearer token')
+            return
+        }
+
         const authParams = new URLSearchParams({
-            token: req.params.token,
+            token: token,
             tenant: req.params.tenant
         });
 
@@ -35,6 +49,10 @@ app.post('/upload/:token/:tenant', (req: express.Request, res: express.Response)
                         })
                     })
                 }
+            })
+            .catch((authError) => {
+                console.error(authError)
+                res.status(500).send('Error fetching Authentication API')
             })
     } else {
         res.status(400).end('Bad Request')

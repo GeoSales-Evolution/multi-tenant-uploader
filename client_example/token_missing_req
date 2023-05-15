@@ -1,0 +1,15 @@
+#!/bin/bash
+export LC_ALL=C.UTF-8
+
+source ./auth_vars
+url=localhost:3003/upload
+
+filePath=$1
+
+response=$(curl -X POST \
+    -H "Content-Type: application/octet-stream" \
+    -H "Authorization: Bearer " \
+    ${url}/${tenant}
+)
+
+echo $response

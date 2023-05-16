@@ -9,8 +9,8 @@ app.use(bodyParser.raw({type: 'application/octet-stream', limit : '4mb'}))
 
 dotenvConfig()
 
-const authUrl = process.env.URL_AUTH_SERVICE;
-const token = process.env.TOKEN
+const authUrl = process.env.URL_AUTH_SERVICE
+const accessToken = process.env.TOKEN
 const token_url = process.env.TOKEN_URL
 const upload_url = process.env.UPLOAD_URL
 const client_id = process.env.CLIENT_ID
@@ -30,22 +30,39 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
             throw new Error('Missing Authorization header')
         }
 
-        const token = authHeader?.split(' ')[1]
-        if (!token) {
+        const authToken = authHeader?.split(' ')[1]
+        if (!authToken) {
             throw new Error('Missing bearer token')
         }
 
         const authParams = new URLSearchParams({
-            token: token,
+            token: authToken,
             tenant: req.params.tenant
         });
 
-        const response = await fetch(`${authUrl}?${authParams}`)
-        if (response.status !== 200) {
+        const authResponse = await fetch(`${authUrl}?${authParams}`)
+        if (authResponse.status !== 200) {
             throw new Error('Error fetching Authentication API')
         }
 
         const filename: string = getFilename(req)
+
+        const uploadResponse = await fetch(`${upload_url}/${upload_folder}/${filename}:/content`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: req.body
+            }
+        )
+
+        if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
+            const error = await uploadResponse.json()
+            console.log(`${error.error.message}`)
+            throw new Error(`${error.error.message}`)
+        }
 
         console.log(`File ${filename} saved`)
         res.status(200).send(`File ${filename} saved.`)

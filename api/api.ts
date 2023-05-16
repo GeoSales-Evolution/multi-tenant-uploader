@@ -8,20 +8,20 @@ dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE;
 
-app.post('/upload/:tenant', (req: express.Request, res: express.Response) => {
-    if (req.headers['content-type'] === 'application/octet-stream') {
+app.post('/upload/:tenant', async (req: express.Request, res: express.Response) => {
+    try {
+        if (req.headers['content-type'] !== 'application/octet-stream') {
+            throw new Error('Bad Request')
+        }
+
         const authHeader = req.headers['authorization']
         if (!authHeader) {
-            console.log('Missing Authorization header')
-            res.status(401).end('Missing Authorization header')
-            return
+            throw new Error('Missing Authorization header')
         }
 
         const token = authHeader?.split(' ')[1]
         if (!token) {
-            console.log('Missing bearer token')
-            res.status(401).end('Missing bearer token')
-            return
+            throw new Error('Missing bearer token')
         }
 
         const authParams = new URLSearchParams({
@@ -29,33 +29,36 @@ app.post('/upload/:tenant', (req: express.Request, res: express.Response) => {
             tenant: req.params.tenant
         });
 
-        let data: Buffer[] = [];
-        const filename: string = getFilename(req);
+        const response = await fetch(`${authUrl}?${authParams}`)
+        if (response.status !== 200) {
+            throw new Error('Error fetching Authentication API')
+        }
 
-        fetch(`${authUrl}?${authParams}`)
-            .then((response) => {
-                if (response.status == 200) {
-                    req.on('data', (chunk: Buffer) => data.push(chunk))
+        let data: Buffer[] = []
+        const filename: string = getFilename(req)
 
-                    req.on('end', () => {
-                        fs.writeFile(`./uploads/${filename}`, Buffer.concat(data), (err: NodeJS.ErrnoException | null) => {
-                            if (err) {
-                                console.error(err)
-                                res.status(500).send(`Error saving file ${filename}`)
-                            } else {
-                                console.log(`File ${filename} saved`)
-                                res.end(`File ${filename} saved.`)
-                            }
-                        })
-                    })
+        req.on('data', (chunk: Buffer) => data.push(chunk))
+
+        req.on('end', () => {
+            fs.writeFile(`./uploads/${filename}`, Buffer.concat(data), (err: NodeJS.ErrnoException | null) => {
+                if (err) {
+                    console.error(err)
+                    res.status(500).send(`Error saving file ${filename}`)
+                } else {
+                    console.log(`File ${filename} saved`)
+                    res.status(200).send(`File ${filename} saved.`)
                 }
             })
-            .catch((authError) => {
-                console.error(authError)
-                res.status(500).send('Error fetching Authentication API')
-            })
-    } else {
-        res.status(400).end('Bad Request')
+        })
+    } catch (error: any) {
+        console.error(error)
+        if (error.message === 'Missing Authorization header' || error.message === 'Missing bearer token') {
+            res.status(401).send(error.message)
+        } else if (error.message === 'Bad Request') {
+            res.status(400).send(error.message)
+        } else {
+            res.status(500).send(error.message)
+        }
     }
 })
 

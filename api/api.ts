@@ -1,8 +1,12 @@
 import express from 'express'
+import bodyParser from 'body-parser'
 import * as contentDisposition from 'content-disposition'
 import { config as dotenvConfig } from "dotenv-safe"
 
 const app = express()
+
+app.use(bodyParser.raw({type: 'application/octet-stream', limit : '4mb'}))
+
 dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE;

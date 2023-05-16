@@ -6,6 +6,14 @@ const app = express()
 dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE;
+const token = process.env.TOKEN
+const token_url = process.env.TOKEN_URL
+const upload_url = process.env.UPLOAD_URL
+const client_id = process.env.CLIENT_ID
+const client_secret = process.env.CLIENT_SECRET
+const grant_type = process.env.GRANT_TYPE
+const scope = process.env.SCOPE
+const upload_folder = process.env.UPLOAD_FOLDER
 
 app.post('/upload/:tenant', async (req: express.Request, res: express.Response) => {
     try {

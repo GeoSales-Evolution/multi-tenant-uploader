@@ -10,7 +10,7 @@ app.use(bodyParser.raw({type: 'application/octet-stream', limit : '4mb'}))
 dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE
-const accessToken = process.env.TOKEN
+let accessToken = process.env.TOKEN
 const token_url = process.env.TOKEN_URL
 const upload_url = process.env.UPLOAD_URL
 const client_id = process.env.CLIENT_ID
@@ -46,6 +46,38 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         }
 
         const filename: string = getFilename(req)
+
+        const checkTokenResult = await fetch(`https://graph.microsoft.com/v1.0/users`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            }
+        )
+
+        if (checkTokenResult.status !== 200) {
+            const error = await checkTokenResult.json()
+            console.log(`${error.error.message}`)
+            console.log('Generating a new token. Please wait...')
+
+            const tokenResponse = await fetch(`${token_url}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'client_id': `${client_id}`,
+                        'client_secret': `${client_secret}`,
+                        'grant_type': `${grant_type}`,
+                        'scope': `${scope}`,
+                    })
+                }
+            )
+
+            const tokenJsonResponse = await tokenResponse.json()
+            accessToken = tokenJsonResponse.access_token
+        }
 
         const uploadResponse = await fetch(`${upload_url}/${upload_folder}/${filename}:/content`,
             {

@@ -79,7 +79,8 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
             accessToken = tokenJsonResponse.access_token
         }
 
-        const uploadResponse = await fetch(`${upload_url}/${upload_folder}/${filename}:/content`,
+        const uploadResponse = await fetch(
+            `${upload_url}/${upload_folder}/${filename}:/content?@microsoft.graph.conflictBehavior=rename`,
             {
                 method: 'PUT',
                 headers: {
@@ -90,14 +91,14 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
             }
         )
 
+        const uploadJson = await uploadResponse.json()
         if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
-            const error = await uploadResponse.json()
-            console.log(`${error.error.message}`)
-            throw new Error(`${error.error.message}`)
+            console.log(`${uploadJson.error.message}`)
+            throw new Error(`${uploadJson.error.message}`)
         }
 
-        console.log(`File ${filename} saved`)
-        res.status(200).send(`File ${filename} saved.`)
+        console.log(`File ${filename} saved as ${uploadJson.name}`)
+        res.status(200).send(`File ${filename} saved as ${uploadJson.name}`)
     } catch (error: any) {
         console.error(error)
         if (error.message === 'Missing Authorization header' || error.message === 'Missing bearer token') {

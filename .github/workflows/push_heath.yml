@@ -46,8 +46,8 @@ jobs:
         run: |
           (timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
           if [ $? -eq 124 ]; then
-            echo "OK, error 124 is acceptable."
+            echo "OK, timeout error is acceptable."
           else
+            exit 1
             echo "The job should not fail with this error. Error code: $?"
-            exit $?
           fi

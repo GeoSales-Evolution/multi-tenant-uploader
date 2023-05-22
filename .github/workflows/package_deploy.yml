@@ -1,9 +1,6 @@
 name: Deploy and Test GitHub Package
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 env:
    REGISTRY: ghcr.io
@@ -64,6 +61,4 @@ jobs:
         run: docker pull $REGISTRY/$DOCKER_IMAGE_NAME
 
       - name: Run Docker container
-        run: docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME
-        timeout-minutes: 1
-        continue-on-error: true
+        run: timeout 5s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME

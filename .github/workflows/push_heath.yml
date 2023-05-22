@@ -37,7 +37,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "URL_AUTH_SERVICE=$URL_AUTH_SERVICE" > .env
+          echo "URL_AUTH_SERVIE=$URL_AUTH_SERVICE" > .env
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
@@ -46,7 +46,7 @@ jobs:
         run: |
           (timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
           if [ $? -eq 124 ]; then
-            echo "OK, the error is acceptable."
+            echo "OK, error 124 is acceptable."
           else
             echo "The job should not fail with this error. Error code: $?"
           fi

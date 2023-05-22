@@ -41,7 +41,7 @@ jobs:
 
       - name: Run Docker container
         run: |
-          (timeout 4s docker run --env-file "$(pwd)/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
+          (timeout 30s docker run --env-file "$(pwd)/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
           if [ $? -eq 124 ]; then
             echo "OK, timeout error is acceptable."
           else

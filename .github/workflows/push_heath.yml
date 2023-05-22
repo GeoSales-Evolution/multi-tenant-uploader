@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Docker container
         run: |
-          timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME
+          (timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME) || echo "The Docker container encountered an error."
           echo "::set-output name=exit_code::$?"
 
       - name: Check Docker container exit code

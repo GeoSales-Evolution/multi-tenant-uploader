@@ -43,6 +43,15 @@ jobs:
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Run Docker container
-        run: docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME
-        timeout-minutes: 1
-        continue-on-error: true
+        run: |
+          timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME
+          echo "::set-output name=exit_code::$?"
+
+      - name: Check Docker container exit code
+        run: |
+          if [[ "${{ steps.run-docker.outputs.exit_code }}" -eq 124 ]]; then
+            echo "The Docker container timed out."
+          elif [[ "${{ steps.run-docker.outputs.exit_code }}" -ne 0 ]]; then
+            echo "The Docker container encountered an error."
+            exit 1
+          fi

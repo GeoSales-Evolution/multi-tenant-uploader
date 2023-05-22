@@ -64,8 +64,9 @@ jobs:
         run: |
           timeout 5s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME
           exit_code=$?
+          echo $exit_code
           if [ $exit_code -eq 124 ]; then
             echo "Docker container timeout occurred"
-            exit 0  # Set the exit code to 0 (success)
+            exit 0
           fi
-          exit $exit_code  # Return the original exit code for other errors
+          exit $exit_code

@@ -1,4 +1,4 @@
-name: Test validadity of built image
+name: Test if current code can generate a valid image
 
 on: [push]
 
@@ -32,9 +32,6 @@ jobs:
       - name: Build Docker image
         run: docker build -t $REGISTRY/$DOCKER_IMAGE_NAME .
 
-      - name: List images
-        run: docker image ls
-
       - name: Create .env file
         run: |
           echo "URL_AUTH_SERVIE=$URL_AUTH_SERVICE" > .env
@@ -44,7 +41,7 @@ jobs:
 
       - name: Run Docker container
         run: |
-          (timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
+          (timeout 4s docker run --env-file "$(pwd)/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
           if [ $? -eq 124 ]; then
             echo "OK, timeout error is acceptable."
           else

@@ -48,6 +48,5 @@ jobs:
           if [ $? -eq 124 ]; then
             echo "OK, timeout error is acceptable."
           else
-            exit $?
-            echo "The job should not fail with this error. Error code: $?"
+            echo "The job should not fail with this error. Error code: $?" && exit $?
           fi

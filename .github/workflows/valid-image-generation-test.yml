@@ -34,7 +34,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "URL_AUTH_SERVICE=$URL_AUTH_SERVICE" > .env
+          echo "URL_AUTH_SERVICExxx=$URL_AUTH_SERVICE" > .env
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

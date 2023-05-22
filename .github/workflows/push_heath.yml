@@ -44,4 +44,5 @@ jobs:
 
       - name: Run Docker container
         run: |
-          (timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME) || echo "$?"
+          (timeout 4s docker run -v "$(pwd)/.env:/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
+          echo "$?"

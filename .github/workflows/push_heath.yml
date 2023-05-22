@@ -49,4 +49,5 @@ jobs:
             echo "OK, error 124 is acceptable."
           else
             echo "The job should not fail with this error. Error code: $?"
+            exit $?
           fi

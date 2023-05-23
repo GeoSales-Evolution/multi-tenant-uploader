@@ -1,6 +1,5 @@
 import express from 'express'
 import * as contentDisposition from 'content-disposition'
-import * as fs from 'fs'
 import { config as dotenvConfig } from "dotenv-safe"
 
 const app = express()
@@ -34,22 +33,9 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
             throw new Error('Error fetching Authentication API')
         }
 
-        let data: Buffer[] = []
         const filename: string = getFilename(req)
 
-        req.on('data', (chunk: Buffer) => data.push(chunk))
 
-        req.on('end', () => {
-            fs.writeFile(`./uploads/${filename}`, Buffer.concat(data), (err: NodeJS.ErrnoException | null) => {
-                if (err) {
-                    console.error(err)
-                    res.status(500).send(`Error saving file ${filename}`)
-                } else {
-                    console.log(`File ${filename} saved`)
-                    res.status(200).send(`File ${filename} saved.`)
-                }
-            })
-        })
     } catch (error: any) {
         console.error(error)
         if (error.message === 'Missing Authorization header' || error.message === 'Missing bearer token') {

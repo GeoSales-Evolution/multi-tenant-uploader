@@ -25,4 +25,14 @@ async function getDocByTenant(tenant: string): Promise<any> {
     return tenantDoc
 }
 
-export default getDocByTenant
+async function updateAccessToken(tenant: string, newToken: string) {
+    const db: Db = client.db(dbName)
+    db.collection('tenants_drivers').updateOne(
+        { tenant: `${tenant}` },
+        {
+          $set: { "properties.access_token": `${newToken}` },
+        }
+     )
+}
+
+export { getDocByTenant, updateAccessToken }

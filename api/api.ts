@@ -3,7 +3,7 @@ import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
 import { config as dotenvConfig } from "dotenv-safe"
 import uploadFile from '../drivers/driver_manager.js'
-import getDocByTenant from "../db/db.js"
+import { getDocByTenant } from "../db/db.js"
 
 const app = express()
 app.use(bodyParser.raw({type: 'application/octet-stream', limit : '5mb'}))

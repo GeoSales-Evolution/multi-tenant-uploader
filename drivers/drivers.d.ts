@@ -7,4 +7,15 @@ type DriverBase = {
 
 type FileSystemDriver = DriverBase
 
-export { FileSystemDriver }
+type OneDriveDriver = DriverBase & {
+    access_token: string,
+    token_url: string,
+    upload_url: string,
+    client_id: string,
+    client_secret: string,
+    grant_type: string,
+    scope: string,
+    generateToken: () => Promise<string>
+}
+
+export { FileSystemDriver, OneDriveDriver }

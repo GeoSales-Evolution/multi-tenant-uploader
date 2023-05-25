@@ -34,7 +34,13 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "URL_AUTH_SERVICE=$URL_AUTH_SERVICE" > .env
+          printf "
+            URL_AUTH_SERVICE=$URL_AUTH_SERVICE\n
+            DB_SERVER=${{ secrets.DB_SERVER }}\n
+            DB_USER=${{ secrets.DB_USER }}\n
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}\n
+            DB_NAME=${{ secrets.DB_NAME }}
+            " > .env
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

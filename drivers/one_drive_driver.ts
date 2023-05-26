@@ -1,7 +1,7 @@
 import { updateAccessToken } from "../db/db.js"
-import { OneDriveDriver } from "./drivers"
+import  Driver from "./drivers"
 
-const oneDriveBuilder = (tenantConfig: any): OneDriveDriver => {
+const oneDriveBuilder = (tenantConfig: any): Driver => {
     return {
         upload_folder: tenantConfig.properties.upload_folder,
         limit_file_size: tenantConfig.properties.limit_file_size,
@@ -73,6 +73,7 @@ const oneDriveBuilder = (tenantConfig: any): OneDriveDriver => {
 
             const tokenJsonResponse = await tokenResponse.json()
             await updateAccessToken(tenantConfig.tenant, tokenJsonResponse.access_token)
+            tenantConfig.properties.access_token = tokenJsonResponse.access_token
             return tokenJsonResponse.access_token
         }
     }

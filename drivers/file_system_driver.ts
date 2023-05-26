@@ -1,7 +1,7 @@
-import { FileSystemDriver } from "./drivers"
+import Driver from "./drivers"
 import * as fs from 'fs'
 
-const fileSystemDriveBuilder = (tenantConfig: any): FileSystemDriver => {
+const fileSystemDriveBuilder = (tenantConfig: any): Driver => {
     return {
         upload_folder: tenantConfig.properties.upload_folder,
         limit_file_size: tenantConfig.properties.limit_file_size,

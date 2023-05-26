@@ -5,9 +5,9 @@ type DriverBase = {
     uploadFile: (file: any, filename: string) => Promise<any>,
 }
 
-type FileSystemDriver = DriverBase
+type FileSystemDriver = {}
 
-type OneDriveDriver = DriverBase & {
+type OneDriveDriver = {
     access_token: string,
     token_url: string,
     upload_url: string,
@@ -15,7 +15,9 @@ type OneDriveDriver = DriverBase & {
     client_secret: string,
     grant_type: string,
     scope: string,
-    generateToken: () => Promise<string>
+    generateToken: () => Promise<void>
 }
 
-export { FileSystemDriver, OneDriveDriver }
+type Driver = DriverBase & (OneDriveDriver | FileSystemDriver)
+
+export default  Driver

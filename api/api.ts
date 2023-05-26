@@ -2,7 +2,7 @@ import express from 'express'
 import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
 import { config as dotenvConfig } from "dotenv-safe"
-import uploadFile from '../drivers/driver_manager.js'
+import { initializeDriver, uploadFile } from '../drivers/driver_manager.js'
 import { getDocByTenant } from "../db/db.js"
 
 const app = express()
@@ -41,7 +41,9 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         const tenantConfig = await getDocByTenant(req.params.tenant)
         const filename: string = getFilename(req)
 
-        const uploadJsonResponse = await uploadFile(tenantConfig, req.body, filename)
+        initializeDriver(tenantConfig)
+
+        const uploadJsonResponse = await uploadFile(req.body, filename)
 
         res.status(200).send(`File ${filename} saved`)
 

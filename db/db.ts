@@ -1,5 +1,6 @@
 import { MongoClient, Db } from 'mongodb'
 import { config as dotenvConfig } from "dotenv-safe"
+import TenantConfig from "../types.js"
 
 dotenvConfig()
 
@@ -18,11 +19,11 @@ try {
     throw error
 }
 
-async function getDocByTenant(tenant: string): Promise<any> {
+async function getTenantConfig(tenant: string): Promise<any> {
     const db: Db = client.db(dbName)
-    const tenantDoc = await db.collection('tenants_drivers')
+    const tenantConfig = await db.collection('tenants_drivers')
         .findOne({tenant: `${tenant}`})
-    return tenantDoc
+    return tenantConfig
 }
 
 async function updateAccessToken(tenant: string, newToken: string) {
@@ -35,4 +36,4 @@ async function updateAccessToken(tenant: string, newToken: string) {
      )
 }
 
-export { getDocByTenant, updateAccessToken }
+export { getTenantConfig, updateAccessToken }

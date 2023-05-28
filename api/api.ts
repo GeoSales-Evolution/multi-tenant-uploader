@@ -1,31 +1,88 @@
 import express from 'express'
 import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
-import { config as dotenvConfig } from "dotenv-safe"
-import { initializeDriver, uploadFile } from '../drivers/driver_manager.js'
-import { getDocByTenant } from "../db/db.js"
+import authenticate from './auth.js'
+import { initializeDriver, uploadFile, downloadFile } from '../drivers/driver_manager.js'
+import { getTenantConfig } from "../db/db.js"
+import { UploaderResponse } from "../types.js"
 
 const app = express()
 app.use(bodyParser.raw({type: 'application/octet-stream', limit : '5mb'}))
 
-dotenvConfig()
-
-const authUrl = process.env.URL_AUTH_SERVICE;
-
 app.post('/upload/:tenant', async (req: express.Request, res: express.Response) => {
+    if (req.headers['content-type'] !== 'application/octet-stream') {
+        res.send({
+            status: 400,
+            error: 'Bad request'
+        })
+        return
+    }
+
+    const authHeader = req.headers['authorization']
+    if (!authHeader) {
+        res.send({
+            status: 401,
+            error: 'Missing Authorization header'
+        })
+        return
+    }
+
+    const token = authHeader?.split(' ')[1]
+    if (!token) {
+        res.send({
+            status: 401,
+            error: 'Missing bearer token'
+        })
+        return
+    }
+
+    const authParams = new URLSearchParams({
+        token: token,
+        tenant: req.params.tenant
+    });
+
     try {
-        if (req.headers['content-type'] !== 'application/octet-stream') {
-            throw new Error('Bad Request')
+        const authResponse: any = await authenticate(authParams)
+        if (authResponse.status !== 200) {
+            res.send({
+                status: authResponse.status,
+                error: 'Error fetching Authentication API'
+            })
+            return
         }
 
+        const tenantConfig = await getTenantConfig(req.params.tenant)
+        const filename: string = getFilename(req)
+
+        initializeDriver(tenantConfig)
+
+        const uploadJsonResponse = await uploadFile(req.body, filename)
+
+        res.status(200).send(uploadJsonResponse)
+
+    } catch (error: any) {
+        console.error(error)
+        res.status(500).send(error.message)
+    }
+})
+
+app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.Response) => {
+    try {
         const authHeader = req.headers['authorization']
         if (!authHeader) {
-            throw new Error('Missing Authorization header')
+            res.send({
+                status: 401,
+                error: 'Missing Authorization header'
+            })
+            return
         }
-
         const token = authHeader?.split(' ')[1]
         if (!token) {
-            throw new Error('Missing bearer token')
+            res.send({
+                status: 401,
+                error: 'Missing bearer token'
+            })
+            return
         }
 
         const authParams = new URLSearchParams({
@@ -33,29 +90,22 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
             tenant: req.params.tenant
         });
 
-        const response = await fetch(`${authUrl}?${authParams}`)
-        if (response.status !== 200) {
-            throw new Error('Error fetching Authentication API')
+        const authResponse: any = await authenticate(authParams)
+        if (authResponse.status !== 200) {
+            res.send({
+                status: authResponse.status,
+                error: 'Error fetching Authentication API'
+            })
+            return
         }
 
-        const tenantConfig = await getDocByTenant(req.params.tenant)
-        const filename: string = getFilename(req)
-
+        const tenantConfig = await getTenantConfig(req.params.tenant)
         initializeDriver(tenantConfig)
-
-        const uploadJsonResponse = await uploadFile(req.body, filename)
-
-        res.status(200).send(`File ${filename} saved`)
-
+        const linkDownload =  await downloadFile(req.params.idFile)
+        res.send({linkDownload: linkDownload})
     } catch (error: any) {
         console.error(error)
-        if (error.message === 'Missing Authorization header' || error.message === 'Missing bearer token') {
-            res.status(401).send(error.message)
-        } else if (error.message === 'Bad Request') {
-            res.status(400).send(error.message)
-        } else {
-            res.status(500).send(error.message)
-        }
+        res.status(500).send(error.message)
     }
 })
 

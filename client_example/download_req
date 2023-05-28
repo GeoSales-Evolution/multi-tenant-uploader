@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source ./auth_vars
+url=localhost:3003/download
+
+linkDownload=$(curl \
+    -H "Authorization: Bearer ${token}" \
+    ${url}/${tenant}/${idFile}
+)
+
+echo $linkDownload

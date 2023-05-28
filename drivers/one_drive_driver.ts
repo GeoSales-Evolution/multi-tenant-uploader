@@ -1,82 +1,120 @@
+import { TenantConfig, UploaderResponse } from "../types.js"
 import { updateAccessToken } from "../db/db.js"
-import  Driver from "./drivers"
 
-const oneDriveBuilder = (tenantConfig: any): Driver => {
-    return {
-        upload_folder: tenantConfig.properties.upload_folder,
-        limit_file_size: tenantConfig.properties.limit_file_size,
-        access_token: tenantConfig.properties.access_token,
-        token_url: tenantConfig.properties.token_url,
-        upload_url: tenantConfig.properties.upload_url,
-        client_id: tenantConfig.properties.client_id,
-        client_secret: tenantConfig.properties.client_secret,
-        grant_type: tenantConfig.properties.grant_type,
-        scope: tenantConfig.properties.scope,
-        makeAuth: async (): Promise<boolean> => {
-            const checkTokenResult = await fetch(`https://graph.microsoft.com/v1.0/users`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${tenantConfig.properties.access_token}`
-                    }
+class OneDriveDriver implements Driver {
+    tenant: string
+    accessToken: string
+    tokenUrl: string
+    uploadUrl: string
+    downloadUrl: string
+    uploadFolder: string
+    clientId: string
+    clientSecret: string
+    grantType: string
+    scope: string
+
+    constructor(tenantConfig: TenantConfig) {
+        this.tenant =  tenantConfig.tenant,
+        this.accessToken = tenantConfig!.properties.access_token!,
+        this.tokenUrl = tenantConfig!.properties.token_url!,
+        this.uploadUrl = tenantConfig!.properties.upload_url!,
+        this.downloadUrl = tenantConfig!.properties.download_url!,
+        this.uploadFolder = tenantConfig!.properties.upload_folder,
+        this.clientId = tenantConfig!.properties.client_id!,
+        this.clientSecret = tenantConfig!.properties.client_secret!,
+        this.grantType = tenantConfig!.properties.grant_type!
+        this.scope = tenantConfig!.properties.scope!
+    }
+
+    async uploadFile(fileBytes: any, filename: string): Promise<UploaderResponse> {
+        const checkTokenResult = await fetch(`https://graph.microsoft.com/v1.0/users`,
+            {
+                headers: {
+                    Authorization: `Bearer ${this.accessToken}`
                 }
-            )
-
-            if (checkTokenResult.status !== 200) {
-                const error = await checkTokenResult.json()
-                console.log(`${error.error.message}`)
-                return false
             }
+        )
 
-            return true
-        },
-        uploadFile: async (bytes: any, filename: string): Promise<any> => {
-            const uploadResponse = await fetch(
-                `${tenantConfig.properties.upload_url}/`
-                + `${tenantConfig.properties.upload_folder}/`
-                + `${filename}:/`
-                + `content?@microsoft.graph.conflictBehavior=rename`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/octet-stream',
-                        'Authorization': `Bearer ${tenantConfig.properties.access_token}`
-                    },
-                    body: bytes
-                }
-            )
-
-            const uploadJson = await uploadResponse.json()
-            if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
-                console.log(`${uploadJson.error.message}`)
-                throw new Error(`${uploadJson.error.message}`)
-            }
-
-            return uploadJson
-        },
-        generateToken: async () => {
-            console.log('Generating a new token. Please wait...')
-
-            const tokenResponse = await fetch(`${tenantConfig.properties.token_url}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        'client_id': `${tenantConfig.properties.client_id}`,
-                        'client_secret': `${tenantConfig.properties.client_secret}`,
-                        'grant_type': `${tenantConfig.properties.grant_type}`,
-                        'scope': `${tenantConfig.properties.scope}`,
-                    })
-                }
-            )
-
-            const tokenJsonResponse = await tokenResponse.json()
-            await updateAccessToken(tenantConfig.tenant, tokenJsonResponse.access_token)
-            tenantConfig.properties.access_token = tokenJsonResponse.access_token
-            return tokenJsonResponse.access_token
+        if (checkTokenResult.status !== 200) {
+            const error = await checkTokenResult.json()
+            console.log(`${error.error.message}`)
+            this.accessToken = await this.generateToken()
         }
+
+        const uploadResponse = await fetch(
+            `${this.uploadUrl}/`
+            + `${this.uploadFolder}/`
+            + `${filename}:/`
+            + `content?@microsoft.graph.conflictBehavior=rename`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'Authorization': `Bearer ${this.accessToken}`
+                },
+                body: fileBytes
+            }
+        )
+        const uploadJson = await uploadResponse.json()
+
+        if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
+            console.log(`${uploadJson.error.message}`)
+            return {
+                status: uploadResponse.status,
+                error: uploadJson.error.message
+            }
+        } else {
+            return {
+                id: uploadJson.id,
+                status: uploadResponse.status,
+                msg: `File ${filename} saved as ${uploadJson.name}`,
+                createdDateTime: uploadJson.createdDateTime,
+                name: uploadJson.name,
+                path: uploadJson.parentReference.path,
+                size: uploadJson.size,
+                mimeType: uploadJson.file.mimeType,
+            }
+        }
+    }
+
+    async downloadFile(idFile: string): Promise<string | null> {
+        const downloadResponse = await fetch(
+            `${this.downloadUrl}/`
+            + `${idFile}`
+            + `?select=id,@microsoft.graph.downloadUrl`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            }
+        )
+        const downloadJsonResponse = await downloadResponse.json()
+        return downloadJsonResponse['@microsoft.graph.downloadUrl']
+    }
+
+    async generateToken(): Promise<string> {
+        console.log('Generating a new token. Please wait...')
+
+        const tokenResponse = await fetch(`${this.tokenUrl}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'client_id': `${this.clientId}`,
+                    'client_secret': `${this.clientSecret}`,
+                    'grant_type': `${this.grantType}`,
+                    'scope': `${this.scope}`,
+                })
+            }
+        )
+
+        const tokenJsonResponse = await tokenResponse.json()
+        await updateAccessToken(this.tenant, tokenJsonResponse.access_token)
+        return tokenJsonResponse.access_token
     }
 }
 
-export default oneDriveBuilder
+export default OneDriveDriver

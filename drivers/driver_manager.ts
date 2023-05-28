@@ -1,16 +1,16 @@
-import Driver from './drivers.js'
-import fileSystemDriveBuilder from './file_system_driver.js'
-import oneDriveBuilder from './one_drive_driver.js'
+import { TenantConfig } from "../types.js"
+import FileSystemDriver from "./file_system_driver.js"
+import OneDriveDriver from "./one_drive_driver.js"
 
 let driver: Driver
 
-function initializeDriver(tenantConfig: any): void {
+function initializeDriver(tenantConfig: TenantConfig): void {
     switch (tenantConfig.driver) {
         case "fileSystem":
-            driver = fileSystemDriveBuilder(tenantConfig)
+            driver = new FileSystemDriver(tenantConfig.properties.upload_folder)
             break
         case "oneDrive":
-            driver = oneDriveBuilder(tenantConfig)
+            driver = new OneDriveDriver(tenantConfig)
             break
         default:
             throw new Error(`No driver named ${tenantConfig.driver} was found`)
@@ -18,11 +18,11 @@ function initializeDriver(tenantConfig: any): void {
 }
 
 async function uploadFile(bytes: any, filename: string): Promise<any> {
-    const authenticated = await driver.makeAuth()
-    if (!authenticated) {
-        "generateToken" in driver && await driver.generateToken()
-    }
     return await driver.uploadFile(bytes, filename)
 }
 
-export { initializeDriver, uploadFile }
+async function downloadFile(idFile: string): Promise<string | null> {
+    return await driver.downloadFile(idFile)
+}
+
+export { initializeDriver, uploadFile, downloadFile }

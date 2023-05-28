@@ -1,0 +1,12 @@
+#!/bin/bash
+export LC_ALL=C.UTF-8
+
+source ./auth_vars
+url=localhost:3003/download
+
+linkDownload=$(curl \
+    -H "Authorization: Bearer " \
+    ${url}/${tenant}/${idFile}
+)
+
+echo $linkDownload

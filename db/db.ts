@@ -1,6 +1,5 @@
 import { MongoClient, Db } from 'mongodb'
 import { config as dotenvConfig } from "dotenv-safe"
-import TenantConfig from "../types.js"
 
 dotenvConfig()
 
@@ -35,5 +34,43 @@ async function updateAccessToken(tenant: string, newToken: string) {
         }
      )
 }
+
+async function updateOneDriveTokens() {
+    console.log("\nRefreshing all One Drive's tokens...\n")
+    const db: Db = client.db(dbName)
+
+    const tenantsConfig = await db.collection('tenants_drivers')
+        .find({driver: "oneDrive"}, {projection: {tenant: 1, properties: 1}})
+
+    for await (const tenantProps of tenantsConfig) {
+        console.log(`Generating a new token to ${tenantProps.tenant}. Please wait...`)
+
+        const tokenResponse = await fetch(`${tenantProps.properties.token_url}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'client_id': `${tenantProps.properties.client_id}`,
+                    'client_secret': `${tenantProps.properties.client_secret}`,
+                    'grant_type': `${tenantProps.properties.grant_type}`,
+                    'scope': `${tenantProps.properties.scope}`,
+                })
+            }
+        )
+
+        if (tokenResponse.status == 200) {
+            const tokenJsonResponse = await tokenResponse.json()
+            await updateAccessToken(tenantProps.tenant, tokenJsonResponse.access_token)
+            console.log(`${tenantProps.tenant} access_token refreshed successfully!`)
+        } else {
+            console.log(`WARNING: ${tenantProps.tenant} access_token couldn't be refreshed!`)
+        }
+    }
+}
+
+updateOneDriveTokens()
+setInterval(updateOneDriveTokens, 3599 * 1000)
 
 export { getTenantConfig, updateAccessToken }

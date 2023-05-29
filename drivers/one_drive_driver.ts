@@ -27,20 +27,6 @@ class OneDriveDriver implements Driver {
     }
 
     async uploadFile(fileBytes: any, filename: string): Promise<UploaderResponse> {
-        const checkTokenResult = await fetch(`https://graph.microsoft.com/v1.0/users`,
-            {
-                headers: {
-                    Authorization: `Bearer ${this.accessToken}`
-                }
-            }
-        )
-
-        if (checkTokenResult.status !== 200) {
-            const error = await checkTokenResult.json()
-            console.log(`${error.error.message}`)
-            this.accessToken = await this.generateToken()
-        }
-
         const uploadResponse = await fetch(
             `${this.uploadUrl}/`
             + `${this.uploadFolder}/`

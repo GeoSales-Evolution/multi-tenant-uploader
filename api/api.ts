@@ -4,7 +4,6 @@ import bodyParser from 'body-parser'
 import authenticate from './auth.js'
 import { initializeDriver, uploadFile, downloadFile } from '../drivers/driver_manager.js'
 import { getTenantConfig } from "../db/db.js"
-import { UploaderResponse } from "../types.js"
 
 const app = express()
 app.use(bodyParser.raw({type: 'application/octet-stream', limit : '5mb'}))

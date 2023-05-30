@@ -2,7 +2,7 @@ import express from 'express'
 import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
 import { config as dotenvConfig } from "dotenv-safe"
-import getDocByTenant from '../db/db.js'
+import { getDocByTenant } from '../db/db.js'
 import uploadFile from '../drivers/driver_manager.js'
 
 const MAX_SHARED_API_FILE_SIZE = '5mb'

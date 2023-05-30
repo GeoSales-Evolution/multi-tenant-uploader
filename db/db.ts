@@ -25,4 +25,24 @@ async function getDocByTenant(tenant: string): Promise<any> {
     return tenantDoc
 }
 
-export default getDocByTenant
+async function updateTokenCreationDate(tenant:string, newDate: string): Promise<void> {
+    const db: Db = client.db(dbName)
+    db.collection('tenants_drivers').updateOne(
+        { tenant: `${tenant}` },
+        {
+          $set: { "properties.token_creation_date": `${newDate}` },
+        }
+     )
+}
+
+async function updateAccessToken(tenant: string, newToken: string): Promise<void> {
+    const db: Db = client.db(dbName)
+    db.collection('tenants_drivers').updateOne(
+        { tenant: `${tenant}` },
+        {
+          $set: { "properties.access_token": `${newToken}` },
+        }
+     )
+}
+
+export { getDocByTenant, updateAccessToken, updateTokenCreationDate }

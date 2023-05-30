@@ -1,27 +1,28 @@
-import { FileSystemDriver } from "./drivers"
 import * as fs from 'fs'
 
-const fileSystemDriveBuilder = (tenantConfig: any): FileSystemDriver => {
-    return {
-        upload_folder: tenantConfig.properties.upload_folder,
-        limit_file_size: tenantConfig.properties.limit_file_size,
-        makeAuth: async (): Promise<boolean> => true,
-        uploadFile: async (bytes: any, filename: string): Promise<any> => {
-            if (!fs.existsSync(tenantConfig.properties.upload_folder)) {
-                fs.mkdirSync(tenantConfig.properties.upload_folder)
-            }
-            fs.writeFile(`${tenantConfig.properties.upload_folder}/${filename}`, bytes, (err) => {
-                if (err) {
-                    throw new Error(`File cannot be written`)
-                }
-                else {
-                    console.log(`File ${filename} was uploaded successfullly to filesystem.`)
-                }
-            });
+class FileSystemDriver implements Driver {
+    uploadFolder: string
 
-            return {"name": `${filename}`}
-        },
+    constructor(uploadFolder: string) {
+        this.uploadFolder = uploadFolder
+    }
+
+    async uploadFile(fileBytes: any, filename: string): Promise<any> {
+        if (!fs.existsSync(this.uploadFolder)) {
+            fs.mkdirSync(this.uploadFolder)
+        }
+        fs.writeFileSync(`${this.uploadFolder}/${filename}`, fileBytes);
+        return {
+            "name": `${filename}`,
+            status: 200,
+            msg: `File ${filename} saved successfully`,
+            path: `${this.uploadFolder}/`,
+        }
+    }
+
+    async downloadFile(idFile: string): Promise<string | null> {
+        return null
     }
 }
 
-export default fileSystemDriveBuilder
+export default FileSystemDriver

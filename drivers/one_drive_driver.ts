@@ -13,7 +13,7 @@ class OneDriveDriver implements Driver {
     grantType: string
     scope: string
 
-    constructor(tenantConfig: any) {
+    constructor(tenantConfig: TenantConfig) {
         this.tenant =  tenantConfig.tenant,
         this.accessToken = tenantConfig!.properties.access_token!,
         this.tokenCreationDate = tenantConfig!.properties.token_creation_date!,

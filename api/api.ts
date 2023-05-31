@@ -2,7 +2,7 @@ import express from 'express'
 import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
 import { config as dotenvConfig } from "dotenv-safe"
-import { getDocByTenant } from '../db/db.js'
+import { getTenantConfig } from '../db/db.js'
 import { initializeDriver, uploadFile } from '../drivers/driver_manager.js'
 
 const MAX_SHARED_API_FILE_SIZE = '5mb'
@@ -40,7 +40,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         }
 
         const filename: string = getFilename(req)
-        const tenantConfig = await getDocByTenant(req.params.tenant)
+        const tenantConfig: TenantConfig = await getTenantConfig(req.params.tenant)
 
         initializeDriver(tenantConfig)
 

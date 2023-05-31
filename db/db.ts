@@ -18,7 +18,7 @@ try {
     throw error
 }
 
-async function getDocByTenant(tenant: string): Promise<any> {
+async function getTenantConfig(tenant: string): Promise<any> {
     const db: Db = client.db(dbName)
     const tenantDoc = await db.collection('tenants_drivers')
         .findOne({tenant: `${tenant}`})
@@ -45,4 +45,4 @@ async function updateAccessToken(tenant: string, newToken: string): Promise<void
      )
 }
 
-export { getDocByTenant, updateAccessToken, updateTokenCreationDate }
+export { getTenantConfig, updateAccessToken, updateTokenCreationDate }

@@ -27,7 +27,7 @@ class OneDriveDriver implements Driver {
         this.scope = tenantConfig!.properties.scope!
     }
 
-    async uploadFile(fileBytes: any, filename: string): Promise<any> {
+    async uploadFile(fileBytes: any, filename: string): Promise<UploadSuccess | UploadError> {
         const currentDate: Date = new Date()
         const tokenBirth: Date = new Date(this.tokenCreationDate)
 
@@ -35,43 +35,63 @@ class OneDriveDriver implements Driver {
 
         if (diffTime < 0 || diffTime > (3599 * 1000)) {
             console.log("Invalid Token. Generating a new one. Please, wait...")
-            this.accessToken = await this.generateToken()
-            await updateTokenCreationDate(this.tenant, currentDate.toISOString())
-            console.log(`Token to ${this.tenant} was generated`)
+            const accessToken = await this.generateToken()
+
+            if (accessToken) {
+                this.accessToken = accessToken
+                await updateTokenCreationDate(this.tenant, currentDate.toISOString())
+                console.log(`Token to ${this.tenant} was generated.`)
+            } else {
+                console.log(`Upload failed. Could not generate token for ${this.tenant}.`)
+                return {
+                    status: 500,
+                    error: `Could not generate token for ${this.tenant}.`
+                }
+            }
+            
         }
 
-        const uploadResponse = await fetch(
-            `${this.uploadUrl}/`
-            + `${this.uploadFolder}/`
-            + `${filename}:/`
-            + `content?@microsoft.graph.conflictBehavior=rename`,
-            {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/octet-stream',
-                    'Authorization': `Bearer ${this.accessToken}`
-                },
-                body: fileBytes
+        try {
+            const uploadResponse = await fetch(
+                `${this.uploadUrl}/`
+                + `${this.uploadFolder}/`
+                + `${filename}:/`
+                + `content?@microsoft.graph.conflictBehavior=rename`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/octet-stream',
+                        'Authorization': `Bearer ${this.accessToken}`
+                    },
+                    body: fileBytes
+                }
+            )
+            const uploadJson = await uploadResponse.json()
+    
+            if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
+                console.log(`${uploadJson.error.message}`)
+                return {
+                    status: uploadResponse.status,
+                    error: uploadJson.error.message
+                }
+            } else {
+                return {
+                    id: uploadJson.id,
+                    status: uploadResponse.status,
+                    msg: `File ${filename} saved as ${uploadJson.name}`,
+                    createdDateTime: uploadJson.createdDateTime,
+                    name: uploadJson.name,
+                    path: uploadJson.parentReference.path,
+                    size: uploadJson.size,
+                    mimeType: uploadJson.file.mimeType,
+                }
             }
-        )
-        const uploadJson = await uploadResponse.json()
-
-        if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
-            console.log(`${uploadJson.error.message}`)
+        } catch (error) {
+            console.log('Upload failed. Could not upload to OneDrive.')
+            console.log(error)
             return {
-                status: uploadResponse.status,
-                error: uploadJson.error.message
-            }
-        } else {
-            return {
-                id: uploadJson.id,
-                status: uploadResponse.status,
-                msg: `File ${filename} saved as ${uploadJson.name}`,
-                createdDateTime: uploadJson.createdDateTime,
-                name: uploadJson.name,
-                path: uploadJson.parentReference.path,
-                size: uploadJson.size,
-                mimeType: uploadJson.file.mimeType,
+                status: 500,
+                error: 'Upload failed. Could not upload to OneDrive.'
             }
         }
     }
@@ -80,27 +100,33 @@ class OneDriveDriver implements Driver {
         return null
     }
 
-    async generateToken(): Promise<string> {
-        console.log('Generating a new token. Please wait...')
+    async generateToken(): Promise<string | null> {
+        try {
+            console.log('Trying to generate a new token. Please wait...')
 
-        const tokenResponse = await fetch(`${this.tokenUrl}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    'client_id': `${this.clientId}`,
-                    'client_secret': `${this.clientSecret}`,
-                    'grant_type': `${this.grantType}`,
-                    'scope': `${this.scope}`,
-                })
-            }
-        )
-
-        const tokenJsonResponse = await tokenResponse.json()
-        await updateAccessToken(this.tenant, tokenJsonResponse.access_token)
-        return tokenJsonResponse.access_token
+            const tokenResponse = await fetch(`${this.tokenUrl}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'client_id': `${this.clientId}`,
+                        'client_secret': `${this.clientSecret}`,
+                        'grant_type': `${this.grantType}`,
+                        'scope': `${this.scope}`,
+                    })
+                }
+            )
+            const tokenJsonResponse = await tokenResponse.json()
+            await updateAccessToken(this.tenant, tokenJsonResponse.access_token)
+            return tokenJsonResponse.access_token
+        } catch (error){
+            console.log('Token generation failed.')
+            console.log(error)
+            return null
+        }
+        
     }
 }
 

@@ -14,49 +14,77 @@ dotenvConfig()
 const authUrl = process.env.URL_AUTH_SERVICE;
 
 app.post('/upload/:tenant', async (req: express.Request, res: express.Response) => {
+    if (req.headers['content-type'] !== 'application/octet-stream') {
+        console.error(`Bad Request at ${new Date()}`)
+        res.status(400).send('Bad Request')
+        return
+    }
+
+    const authHeader = req.headers['authorization']
+    if (!authHeader) {
+        console.error(`Missing Authorization header at ${new Date()}`)
+        res.status(401).send('Missing Authorization header')
+        return
+    }
+
+    const token = authHeader?.split(' ')[1]
+    if (!token) {
+        console.error(`Request missing bearer token at ${new Date()}`)
+        res.status(401).send('Missing bearer token')
+        return
+    }
+
+    const authParams = new URLSearchParams({
+        token: token,
+        tenant: req.params.tenant
+    });
+
+    const authResponse = await makeAuth(authUrl, authParams)
+
+    if (authResponse.status !== 200) {
+        console.error(`Error authenticating user. Caused by:\n${ 'errorMessage' in authResponse ? authResponse.errorMessage: null }\nat ${new Date()}`)
+        res.status(authResponse.status).send('Error trying authentication.')
+        return
+    }
+
+    const filename: string = getFilename(req)
+    const tenantConfig = await getTenantConfig(req.params.tenant)
+
+    if (!tenantConfig) {
+        console.error(`Tenant not found at ${new Date()}`)
+        res.status(404).send('Tenant not found.')
+        return
+    }
+
+    if (!initializeDriver(tenantConfig)) {
+        console.error(`Driver not found at ${new Date()}`)
+        res.status(404).send('Driver not found.')
+        return
+    }
+
+    const uploadJsonResponse = await uploadFile(req.body, filename)
+
+    if ('error' in uploadJsonResponse) {
+        console.error(`Error uploading file. at ${new Date()}\n${uploadJsonResponse.error}`)
+        res.status(500).send('Error uploading file.')
+        return
+    }
+
+    res.status(uploadJsonResponse.status).send(uploadJsonResponse)
+    return
+})
+
+async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams): Promise<AuthStatus | AuthError> {
     try {
-        if (req.headers['content-type'] !== 'application/octet-stream') {
-            throw new Error('Bad Request')
-        }
-
-        const authHeader = req.headers['authorization']
-        if (!authHeader) {
-            throw new Error('Missing Authorization header')
-        }
-
-        const token = authHeader?.split(' ')[1]
-        if (!token) {
-            throw new Error('Missing bearer token')
-        }
-
-        const authParams = new URLSearchParams({
-            token: token,
-            tenant: req.params.tenant
-        });
-
-        const response = await fetch(`${authUrl}?${authParams}`)
-        if (response.status !== 200) {
-            throw new Error('Error fetching Authentication API')
-        }
-
-        const filename: string = getFilename(req)
-        const tenantConfig: TenantConfig = await getTenantConfig(req.params.tenant)
-
-        initializeDriver(tenantConfig)
-
-        const uploadJsonResponse = await uploadFile(req.body, filename)
-        res.status(uploadJsonResponse.status).send(uploadJsonResponse)
+      const response = await fetch(`${authUrl}?${authParams}`);
+        return {status: response.status};
     } catch (error: any) {
-        console.error(error)
-        if (error.message === 'Missing Authorization header' || error.message === 'Missing bearer token') {
-            res.status(401).send(error.message)
-        } else if (error.message === 'Bad Request') {
-            res.status(400).send(error.message)
-        } else {
-            res.status(500).send(error.message)
+        return {
+            status: 500,
+            errorMessage: error
         }
     }
-})
+}
 
 function getFilename(req: express.Request): string {
     const dispositionHeader: string | undefined = req.headers['content-disposition']

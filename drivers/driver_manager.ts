@@ -3,7 +3,7 @@ import OneDriveDriver from "./one_drive_driver.js"
 
 let driver: Driver
 
-function initializeDriver(tenantConfig: any): void {
+function initializeDriver(tenantConfig: TenantConfig): void {
     switch (tenantConfig.driver) {
         case "fileSystem":
             driver = new FileSystemDriver(tenantConfig.properties.upload_folder)

@@ -2,7 +2,7 @@ import express from 'express'
 import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
 import { config as dotenvConfig } from "dotenv-safe"
-import getDocByTenant from '../db/db.js'
+import { getDocByTenant } from '../db/db.js'
 import uploadFile from '../drivers/driver_manager.js'
 
 const MAX_SHARED_API_FILE_SIZE = '5mb'
@@ -42,7 +42,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         const filename: string = getFilename(req)
         const tenantConfig = await getDocByTenant(req.params.tenant)
         const uploadJsonResponse = await uploadFile(tenantConfig, req.body, filename)
-        res.status(200).send(`File ${filename} saved`)
+        res.status(uploadJsonResponse.status).send(uploadJsonResponse)
     } catch (error: any) {
         console.error(error)
         if (error.message === 'Missing Authorization header' || error.message === 'Missing bearer token') {

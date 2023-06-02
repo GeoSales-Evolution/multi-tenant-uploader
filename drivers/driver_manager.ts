@@ -3,17 +3,21 @@ import OneDriveDriver from "./one_drive_driver.js"
 
 let driver: Driver
 
-async function uploadFile(tenantConfig: any, fileBytes: any, filename: string): Promise<any> {
+function initializeDriver(tenantConfig: any): void {
     switch (tenantConfig.driver) {
         case "fileSystem":
             driver = new FileSystemDriver(tenantConfig.properties.upload_folder)
-            return await driver.uploadFile(fileBytes, filename)
+            break
         case "oneDrive":
             driver = new OneDriveDriver(tenantConfig)
-            return await driver.uploadFile(fileBytes, filename)
+            break
         default:
             throw new Error(`No driver named ${tenantConfig.driver} was found`)
     }
 }
 
-export default uploadFile
+async function uploadFile(bytes: any, filename: string): Promise<any> {
+    return await driver.uploadFile(bytes, filename)
+}
+
+export { initializeDriver, uploadFile }

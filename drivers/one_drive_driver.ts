@@ -48,7 +48,7 @@ class OneDriveDriver implements Driver {
                     error: `Could not generate token for ${this.tenant}.`
                 }
             }
-            
+
         }
 
         try {
@@ -67,7 +67,7 @@ class OneDriveDriver implements Driver {
                 }
             )
             const uploadJson = await uploadResponse.json()
-    
+
             if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
                 console.log(`${uploadJson.error.message}`)
                 return {
@@ -96,8 +96,43 @@ class OneDriveDriver implements Driver {
         }
     }
 
-    async downloadFile(idFile: string): Promise<string | null> {
-        return null
+    async downloadFile(idFile: string): Promise<any> {
+        //Código Repetido: Tratativa de geração do token
+        const currentDate: Date = new Date()
+        const tokenBirth: Date = new Date(this.tokenCreationDate)
+
+        const diffTime: any = currentDate.getTime() - tokenBirth.getTime()
+
+        if (diffTime < 0 || diffTime > (3599 * 1000)) {
+            console.log("Invalid Token. Generating a new one. Please, wait...")
+            const accessToken = await this.generateToken()
+
+            if (accessToken) {
+                this.accessToken = accessToken
+                await updateTokenCreationDate(this.tenant, currentDate.toISOString())
+                console.log(`Token to ${this.tenant} was generated.`)
+            } else {
+                console.log(`Upload failed. Could not generate token for ${this.tenant}.`)
+                return {
+                    status: 500,
+                    error: `Could not generate token for ${this.tenant}.`
+                }
+            }
+        } // Fim do código repetido
+
+        const downloadResponse = await fetch(
+            `${this.downloadUrl}/`
+            + `${idFile}`
+            + `?select=id,@microsoft.graph.downloadUrl`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            }
+        )
+        const downloadJsonResponse = await downloadResponse.json()
+        return downloadJsonResponse['@microsoft.graph.downloadUrl']
     }
 
     async generateToken(): Promise<string | null> {
@@ -126,7 +161,7 @@ class OneDriveDriver implements Driver {
             console.log(error)
             return null
         }
-        
+
     }
 }
 

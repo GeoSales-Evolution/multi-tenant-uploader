@@ -3,7 +3,7 @@ import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
 import { config as dotenvConfig } from "dotenv-safe"
 import { getTenantConfig } from '../db/db.js'
-import { initializeDriver, uploadFile } from '../drivers/driver_manager.js'
+import { initializeDriver, uploadFile, downloadFile } from '../drivers/driver_manager.js'
 
 const MAX_SHARED_API_FILE_SIZE = '5mb'
 const app = express()
@@ -42,7 +42,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
     const authResponse = await makeAuth(authUrl, authParams)
 
     if (authResponse.status !== 200) {
-        console.error(`Error authenticating user. Caused by:\n${ 'errorMessage' in authResponse ? authResponse.errorMessage: null }\nat ${new Date()}`)
+        console.error(`Error authenticating user. Caused by:\n${ 'errorMessage' in authResponse ? authResponse.errorMessage: 'not known' }\nat ${new Date()}`)
         res.status(authResponse.status).send('Error trying authentication.')
         return
     }
@@ -85,6 +85,29 @@ async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams
         }
     }
 }
+
+app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.Response) => {
+    // Fazer autenticação - Centralizar essas questoes pra evitar repeticao
+
+    const tenantConfig = await getTenantConfig(req.params.tenant)
+    initializeDriver(tenantConfig)
+    const linkDownload =  await downloadFile(req.params.idFile)
+
+    const resposta = await fetch(linkDownload)
+
+    const blob = await resposta.blob()
+
+    const myArrayBuffer = await blob.arrayBuffer()
+    const onlyBuffer = await Buffer.from(myArrayBuffer)
+
+    res.set('Accept-Ranges', 'bytes')
+    res.set('Cache-Control', 'public')
+    res.set('Content-Type', 'image/jpeg')
+    res.set('Content-Disposition', 'atachment; filename=rgb.jpeg')
+
+    const c = await resposta.body
+    res.send(onlyBuffer)
+})
 
 function getFilename(req: express.Request): string {
     const dispositionHeader: string | undefined = req.headers['content-disposition']

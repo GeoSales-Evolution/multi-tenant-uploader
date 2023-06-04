@@ -27,7 +27,7 @@ class OneDriveDriver implements Driver {
         this.scope = tenantConfig!.properties.scope!
     }
 
-    async uploadFile(fileBytes: any, filename: string): Promise<UploadSuccess | UploadError> {
+    async uploadFile(fileBytes: any, filename: string): Promise<UploadSuccess | Err> {
         const currentDate: Date = new Date()
         const tokenBirth: Date = new Date(this.tokenCreationDate)
 
@@ -45,7 +45,7 @@ class OneDriveDriver implements Driver {
                 console.log(`Upload failed. Could not generate token for ${this.tenant}.`)
                 return {
                     status: 500,
-                    error: `Could not generate token for ${this.tenant}.`
+                    errorMessage: `Could not generate token for ${this.tenant}.`
                 }
             }
 
@@ -72,7 +72,7 @@ class OneDriveDriver implements Driver {
                 console.log(`${uploadJson.error.message}`)
                 return {
                     status: uploadResponse.status,
-                    error: uploadJson.error.message
+                    errorMessage: uploadJson.error.message
                 }
             } else {
                 return {
@@ -91,7 +91,7 @@ class OneDriveDriver implements Driver {
             console.log(error)
             return {
                 status: 500,
-                error: 'Upload failed. Could not upload to OneDrive.'
+                errorMessage: 'Upload failed. Could not upload to OneDrive.'
             }
         }
     }

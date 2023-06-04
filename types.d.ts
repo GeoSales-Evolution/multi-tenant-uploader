@@ -15,9 +15,9 @@ type TenantConfig = {
     }
 }
 
-type UploadError = {
+type Err = {
     status: number
-    error: string
+    errorMessage: string
 }
 
 type UploadSuccess = {
@@ -33,9 +33,4 @@ type UploadSuccess = {
 
 type AuthStatus = {
     status: number
-}
-
-type AuthError = {
-    status: number,
-    errorMessage: string
 }

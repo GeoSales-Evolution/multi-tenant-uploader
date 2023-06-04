@@ -74,7 +74,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
     return
 })
 
-async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams): Promise<AuthStatus | AuthError> {
+async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams): Promise<AuthStatus | Err> {
     try {
       const response = await fetch(`${authUrl}?${authParams}`);
         return {status: response.status};

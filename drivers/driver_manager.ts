@@ -16,7 +16,7 @@ function initializeDriver(tenantConfig: TenantConfig): boolean {
     }
 }
 
-async function uploadFile(bytes: any, filename: string): Promise<UploadSuccess | UploadError> {
+async function uploadFile(bytes: any, filename: string): Promise<UploadSuccess | Err> {
     return await driver.uploadFile(bytes, filename)
 }
 

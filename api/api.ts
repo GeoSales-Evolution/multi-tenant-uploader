@@ -64,14 +64,77 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
 
     const uploadJsonResponse = await uploadFile(req.body, filename)
 
-    if ('error' in uploadJsonResponse) {
-        console.error(`Error uploading file. at ${new Date()}\n${uploadJsonResponse.error}`)
+    if ('errorMessage' in uploadJsonResponse) {
+        console.error(`Error uploading file. at ${new Date()}\n${uploadJsonResponse.errorMessage}`)
         res.status(500).send('Error uploading file.')
         return
     }
 
     res.status(uploadJsonResponse.status).send(uploadJsonResponse)
     return
+})
+
+app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.Response) => {
+    const authHeader = req.headers['authorization']
+    if (!authHeader) {
+        console.error(`Missing Authorization header at ${new Date()}`)
+        res.status(401).send('Missing Authorization header')
+        return
+    }
+
+    const token = authHeader?.split(' ')[1]
+    if (!token) {
+        console.error(`Request missing bearer token at ${new Date()}`)
+        res.status(401).send('Missing bearer token')
+        return
+    }
+
+    const authParams = new URLSearchParams({
+        token: token,
+        tenant: req.params.tenant
+    });
+
+    const authResponse = await makeAuth(authUrl, authParams)
+
+    if (authResponse.status !== 200) {
+        console.error(`Error authenticating user. Caused by:\n${ 'errorMessage' in authResponse ? authResponse.errorMessage: 'not known' }\nat ${new Date()}`)
+        res.status(authResponse.status).send('Error trying authentication.')
+        return
+    }
+
+    const tenantConfig = await getTenantConfig(req.params.tenant)
+    if (!tenantConfig) {
+        console.error(`Tenant not found at ${new Date()}`)
+        res.status(404).send('Tenant not found.')
+        return
+    }
+
+    if (!initializeDriver(tenantConfig)) {
+        console.error(`Driver not found at ${new Date()}`)
+        res.status(404).send('Driver not found.')
+        return
+    }
+
+    const downloadJsonResponse =  await downloadFile(req.params.idFile)
+
+    if ('errorMessage' in downloadJsonResponse) {
+        console.error(`Error downloading file. at ${new Date()}\n${downloadJsonResponse.errorMessage}`)
+        res.status(downloadJsonResponse.status).send('Error downloading file.')
+        return
+    }
+
+    const readableResponse = await fetch(downloadJsonResponse.downloadLink)
+
+    const blob = await readableResponse.blob()
+    const arrayBuffer = await blob.arrayBuffer()
+    const buffer = await Buffer.from(arrayBuffer)
+
+    res.set('Accept-Ranges', 'bytes')
+    res.set('Cache-Control', 'public')
+    res.set('Content-Type', `${downloadJsonResponse.mimeType}`)
+    res.set('Content-Disposition', `atachment; filename=${downloadJsonResponse.name}`)
+
+    res.send(buffer)
 })
 
 async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams): Promise<AuthStatus | Err> {
@@ -85,29 +148,6 @@ async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams
         }
     }
 }
-
-app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.Response) => {
-    // Fazer autenticação - Centralizar essas questoes pra evitar repeticao
-
-    const tenantConfig = await getTenantConfig(req.params.tenant)
-    initializeDriver(tenantConfig)
-    const linkDownload =  await downloadFile(req.params.idFile)
-
-    const resposta = await fetch(linkDownload)
-
-    const blob = await resposta.blob()
-
-    const myArrayBuffer = await blob.arrayBuffer()
-    const onlyBuffer = await Buffer.from(myArrayBuffer)
-
-    res.set('Accept-Ranges', 'bytes')
-    res.set('Cache-Control', 'public')
-    res.set('Content-Type', 'image/jpeg')
-    res.set('Content-Disposition', 'atachment; filename=rgb.jpeg')
-
-    const c = await resposta.body
-    res.send(onlyBuffer)
-})
 
 function getFilename(req: express.Request): string {
     const dispositionHeader: string | undefined = req.headers['content-disposition']

@@ -31,6 +31,15 @@ type UploadSuccess = {
     mimeType: string
 }
 
+type DownloadSuccess = {
+    id: string,
+    status: number,
+    msg: string,
+    downloadLink: string,
+    name: string,
+    mimeType: string,
+}
+
 type AuthStatus = {
     status: number
 }

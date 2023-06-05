@@ -1,4 +1,5 @@
-import { updateAccessToken, updateTokenCreationDate } from "../db/db.js"
+import { updateAccessToken, saveFile, updateTokenCreationDate } from "../db/db.js"
+import hash from 'string-hash'
 
 class OneDriveDriver implements Driver {
     tenant: string
@@ -28,6 +29,7 @@ class OneDriveDriver implements Driver {
     }
 
     async uploadFile(fileBytes: any, filename: string): Promise<UploadSuccess | Err> {
+        const UPLOADER_SERVICE = process.env.UPLOADER_SERVICE;
         await this.refreshTokenIfNeeded()
 
         try {
@@ -54,16 +56,19 @@ class OneDriveDriver implements Driver {
                     errorMessage: uploadJson.error.message
                 }
             } else {
-                return {
+                const cdFile = hash(uploadJson.id)
+                const file: UploadSuccess = {
+                    cdFile: cdFile,
+                    obfuscatedLink: `${UPLOADER_SERVICE}/download/${this.tenant}/${cdFile}`,
                     id: uploadJson.id,
                     status: uploadResponse.status,
-                    msg: `File ${filename} saved as ${uploadJson.name}`,
-                    createdDateTime: uploadJson.createdDateTime,
                     name: uploadJson.name,
                     path: uploadJson.parentReference.path,
                     size: uploadJson.size,
                     mimeType: uploadJson.file.mimeType,
                 }
+                await saveFile(this.tenant, file)
+                return file
             }
         } catch (error) {
             console.log('Upload failed. Could not upload to OneDrive.')
@@ -165,6 +170,10 @@ class OneDriveDriver implements Driver {
             console.log(error)
             return null
         }
+    }
+
+    generateArbitraryId(): number {
+        return Math.random() * (999999999 - 1) + 1;
     }
 }
 

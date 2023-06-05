@@ -45,4 +45,26 @@ async function updateAccessToken(tenant: string, newToken: string): Promise<void
      )
 }
 
-export { getTenantConfig, updateAccessToken, updateTokenCreationDate }
+async function saveFile(tenant: string, file: UploadSuccess): Promise<void> {
+    const db: Db = client.db(dbName)
+    db.collection('tenants_drivers').updateOne(
+        {tenant: `${tenant}`},
+        {$push: { "properties.saved_files": {
+            cdFile: file.cdFile,
+            obfuscatedLink: file.obfuscatedLink,
+            id: file.id,
+            status: file.status,
+            name: file.name,
+            path: file.path,
+            size: file.size,
+            mimeType: file.mimeType,
+        }}}
+    )
+}
+
+export {
+    getTenantConfig,
+    updateAccessToken,
+    updateTokenCreationDate,
+    saveFile,
+}

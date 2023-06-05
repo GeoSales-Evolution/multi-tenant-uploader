@@ -21,14 +21,14 @@ type Err = {
 }
 
 type UploadSuccess = {
-    id: string
-    status: number
-    msg: string
-    createdDateTime: string
-    name: string
-    path: string
-    size: number
-    mimeType: string
+    cdFile: number,
+    obfuscatedLink: string,
+    id: string,
+    status: number,
+    name: string,
+    path: string,
+    size: string,
+    mimeType: string,
 }
 
 type DownloadSuccess = {

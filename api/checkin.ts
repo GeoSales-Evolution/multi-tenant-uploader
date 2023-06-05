@@ -5,7 +5,7 @@ import { initializeDriver } from '../drivers/driver_manager.js'
 dotenvConfig()
 const authUrl = process.env.URL_AUTH_SERVICE;
 
-async function checkinDefault(authHeader: string, tenant: string): Promise<Err | null> {
+async function checkin(authHeader: string, tenant: string): Promise<Err | null> {
     if (!authHeader) {
         return {
             status: 401,
@@ -65,4 +65,4 @@ async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams
     }
 }
 
-export default checkinDefault
+export default checkin

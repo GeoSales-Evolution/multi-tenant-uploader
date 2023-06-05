@@ -1,7 +1,7 @@
 import express from 'express'
 import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
-import checkinDefault from './checkin.js'
+import checkin from './checkin.js'
 import { uploadFile, downloadFile } from '../drivers/driver_manager.js'
 
 const MAX_SHARED_API_FILE_SIZE = '5mb'
@@ -15,7 +15,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         return
     }
 
-    const checkinResult = await checkinDefault(req.headers['authorization'] as string, req.params.tenant)
+    const checkinResult = await checkin(req.headers['authorization'] as string, req.params.tenant)
 
     if (checkinResult != null) {
         console.error(`${checkinResult.errorMessage} at ${new Date()}`)
@@ -27,7 +27,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
     const uploadJsonResponse = await uploadFile(req.body, filename)
 
     if ('errorMessage' in uploadJsonResponse) {
-        console.error(`Error uploading file. at ${new Date()}\n${uploadJsonResponse.errorMessage}`)
+        console.error(`Error uploading file at ${new Date()}\n${uploadJsonResponse.errorMessage}`)
         res.status(500).send('Error uploading file.')
         return
     }
@@ -37,7 +37,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
 })
 
 app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.Response) => {
-    const checkinResult = await await checkinDefault(req.headers['authorization'] as string, req.params.tenant)
+    const checkinResult = await await checkin(req.headers['authorization'] as string, req.params.tenant)
 
     if (checkinResult != null) {
         console.error(`${checkinResult.errorMessage} at ${new Date()}`)
@@ -48,7 +48,7 @@ app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.R
     const downloadJsonResponse =  await downloadFile(req.params.idFile)
 
     if ('errorMessage' in downloadJsonResponse) {
-        console.error(`Error downloading file. at ${new Date()}\n${downloadJsonResponse.errorMessage}`)
+        console.error(`Error downloading file at ${new Date()}\n${downloadJsonResponse.errorMessage}`)
         res.status(downloadJsonResponse.status).send('Error downloading file.')
         return
     }
@@ -59,8 +59,6 @@ app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.R
     const arrayBuffer = await blob.arrayBuffer()
     const buffer = await Buffer.from(arrayBuffer)
 
-    res.set('Accept-Ranges', 'bytes')
-    res.set('Cache-Control', 'public')
     res.set('Content-Type', `${downloadJsonResponse.mimeType}`)
     res.set('Content-Disposition', `atachment; filename=${downloadJsonResponse.name}`)
 

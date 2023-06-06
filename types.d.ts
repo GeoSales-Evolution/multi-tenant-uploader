@@ -14,3 +14,23 @@ type TenantConfig = {
         scope: string | null,
     }
 }
+
+type ServerError = {
+    status: number,
+    errorMessage: string,
+}
+
+type UploadSuccess = {
+    id: string,
+    status: number,
+    msg: string,
+    createdDateTime: string,
+    name: string,
+    path: string,
+    size: number,
+    mimeType: string,
+}
+
+type AuthStatus = {
+    status: number,
+}

@@ -21,6 +21,17 @@ type OneDriveConfig = TenantConfig & {
     }
 }
 
+type StoredFile = {
+    tenant: string,
+    driver: string,
+    id_file_driver: string,
+    name: string,
+    path: string,
+    size: number,
+    mime_type: string,
+    creation_date: Date,
+}
+
 type ServerError = {
     status: number,
     errorMessage: string,

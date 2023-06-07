@@ -1,4 +1,4 @@
-import { MongoClient, Db } from 'mongodb'
+import { MongoClient, Db, ObjectId } from 'mongodb'
 import { config as dotenvConfig } from "dotenv-safe"
 
 dotenvConfig()
@@ -63,4 +63,24 @@ async function updateAccessToken(tenant: string, newToken: string): Promise<void
      )
 }
 
-export { getTenantConfig, updateAccessToken, updateTokenCreationDate }
+async function storeSavedFileMetadata(file: StoredFile): Promise<string | null> {
+    const db: Db = client.db(dbName)
+
+    const storedFile = await db.collection('arquivo')
+        .insertOne(file)
+
+    if (!storedFile.acknowledged) {
+        console.error(`ERROR: The file ${file.name} was not stored in database`)
+        return null
+    }
+
+    console.log(`The file ${file.name} was successfully stored in database`)
+    return storedFile.insertedId.toString()
+}
+
+export {
+    getTenantConfig,
+    updateAccessToken,
+    updateTokenCreationDate,
+    storeSavedFileMetadata
+}

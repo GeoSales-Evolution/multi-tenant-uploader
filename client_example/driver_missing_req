@@ -6,13 +6,11 @@ url=localhost:3003/upload
 
 filePath=$1
 filename=$(echo "$filePath" | grep -oP "(?<=/)[^/]+$")
-driver=${2:-"one_drive"}
 
 response=$(curl -X POST \
     -H "Content-Type: application/octet-stream" \
     -H "Authorization: Bearer ${token}" \
     -H "Content-Disposition: attachment; filename=${filename}" \
-    -H "driver: ${driver}" \
     --data-binary "@${filePath}" \
     ${url}/${tenant}
 )

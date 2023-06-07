@@ -5,11 +5,11 @@ let driver: Driver
 
 function initializeDriver(tenantConfig: TenantConfig): boolean {
     switch (tenantConfig.driver) {
-        case "fileSystem":
-            driver = new FileSystemDriver(tenantConfig.properties.upload_folder)
+        case "file_system":
+            driver = new FileSystemDriver(tenantConfig.properties!.upload_folder)
             return true
-        case "oneDrive":
-            driver = new OneDriveDriver(tenantConfig)
+        case "one_drive":
+            driver = new OneDriveDriver(tenantConfig as OneDriveConfig)
             return true
         default:
             return false

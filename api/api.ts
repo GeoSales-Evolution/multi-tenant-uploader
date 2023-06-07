@@ -20,6 +20,13 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         return
     }
 
+    const driverHeader = req.headers['driver'] as string
+    if (!driverHeader) {
+        console.error(`Missing driver header at ${new Date()}`)
+        res.status(400).send('Missing driver header')
+        return
+    }
+
     const authHeader = req.headers['authorization']
     if (!authHeader) {
         console.error(`Missing Authorization header at ${new Date()}`)
@@ -50,11 +57,17 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
     }
 
     const filename: string = getFilename(req)
-    const tenantConfig = await getTenantConfig(req.params.tenant)
+    const tenantConfig = await getTenantConfig(req.params.tenant, driverHeader)
 
     if (!tenantConfig) {
         console.error(`Tenant not found at ${new Date()}`)
         res.status(404).send('Tenant not found.')
+        return
+    }
+
+    if (!tenantConfig.driver) {
+        console.error(`Driver for tenant ${req.params.tenant} not found at ${new Date()}`)
+        res.status(404).send(`Driver for tenant ${req.params.tenant} not found`)
         return
     }
 

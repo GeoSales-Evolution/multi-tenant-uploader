@@ -27,51 +27,14 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         return
     }
 
-    const authHeader = req.headers['authorization']
-    if (!authHeader) {
-        console.error(`Missing Authorization header at ${new Date()}`)
-        res.status(401).send('Missing Authorization header')
-        return
-    }
-
-    const token = authHeader?.split(' ')[1]
-    if (!token) {
-        console.error(`Request missing bearer token at ${new Date()}`)
-        res.status(401).send('Missing bearer token')
-        return
-    }
-
-    const authResponse = await makeAuth(authUrl, token, req.params.tenant)
-
-    if (authResponse.status !== 200) {
-        console.error(`Error authenticating user. Caused by:
-        ${'errorMessage' in authResponse ? authResponse.errorMessage : `Authentication service returned status ${authResponse.status}`}
-        at ${new Date()}`)
-        res.status(authResponse.status).send('Error trying authentication.')
+    const checkinResponse = await checkin(req, driverHeader)
+    if (checkinResponse.status !== 200) {
+        console.error(`${checkinResponse.errorMessage} at ${new Date()}`)
+        res.status(checkinResponse.status).send(checkinResponse.errorMessage)
         return
     }
 
     const filename: string = getFilename(req)
-    const tenantConfig = await getTenantConfig(req.params.tenant, driverHeader)
-
-    if (!tenantConfig) {
-        console.error(`Tenant not found at ${new Date()}`)
-        res.status(404).send('Tenant not found.')
-        return
-    }
-
-    if (!tenantConfig.driver) {
-        console.error(`Driver for tenant ${req.params.tenant} not found at ${new Date()}`)
-        res.status(404).send(`Driver for tenant ${req.params.tenant} not found`)
-        return
-    }
-
-    if (!initializeDriver(tenantConfig)) {
-        console.error(`Driver not found at ${new Date()}`)
-        res.status(404).send('Driver not found.')
-        return
-    }
-
     const uploadJsonResponse = await uploadFile(req.body, filename)
 
     if ('errorMessage' in uploadJsonResponse) {
@@ -85,52 +48,21 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
 })
 
 app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.Response) => {
-    const authHeader = req.headers['authorization']
-    if (!authHeader) {
-        console.error(`Missing Authorization header at ${new Date()}`)
-        res.status(401).send('Missing Authorization header')
-        return
-    }
-
-    const token = authHeader?.split(' ')[1]
-    if (!token) {
-        console.error(`Request missing bearer token at ${new Date()}`)
-        res.status(401).send('Missing bearer token')
-        return
-    }
-
-    const authResponse = await makeAuth(authUrl, token, req.params.tenant)
-
-    if (authResponse.status !== 200) {
-        console.error(`Error authenticating user. Caused by:
-        ${'errorMessage' in authResponse ? authResponse.errorMessage : `Authentication service returned status ${authResponse.status}`}
-        at ${new Date()}`)
-        res.status(authResponse.status).send('Error trying authentication.')
-        return
-    }
-
     const fileMetadata = await getUploadMetadataById(req.params.idFile)
     if (!fileMetadata) {
         console.error(`File metadata was not found at ${new Date()}`)
-        res.status(404).send(`File metadata was not found not found`)
+        res.status(404).send(`File metadata was not found.`)
         return
     }
 
-    const tenantConfig = await getTenantConfig(req.params.tenant, fileMetadata.driver)
-
-    if (!tenantConfig) {
-        console.error(`Tenant not found at ${new Date()}`)
-        res.status(404).send('Tenant not found.')
+    const checkinResponse = await checkin(req, fileMetadata.driver)
+    if (checkinResponse.status !== 200) {
+        console.error(`${checkinResponse.errorMessage!} at ${new Date()}`)
+        res.status(checkinResponse.status).send(checkinResponse.errorMessage!)
         return
     }
 
-    if (!initializeDriver(tenantConfig)) {
-        console.error(`Driver not found at ${new Date()}`)
-        res.status(404).send('Driver not found.')
-        return
-    }
-
-    const downloadJsonResponse =  await downloadFile(fileMetadata.id_file_driver)
+    const downloadJsonResponse = await downloadFile(fileMetadata.id_file_driver)
 
     if ('errorMessage' in downloadJsonResponse) {
         console.error(`Error downloading file at ${new Date()}\n${downloadJsonResponse.errorMessage}`)
@@ -143,6 +75,65 @@ app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.R
 
     res.send(downloadJsonResponse.buffer)
 })
+
+async function checkin(req: express.Request, driver: string): Promise<ServerError> {
+    const authHeader = req.headers['authorization']
+    if (!authHeader) {
+        return {
+            status: 401,
+            errorMessage: 'Missing Authorization header'
+        }
+    }
+
+    const token = authHeader?.split(' ')[1]
+    if (!token) {
+        return {
+            status: 401,
+            errorMessage: 'Missing bearer token'
+        }
+    }
+
+    const authResponse = await makeAuth(authUrl, token, req.params.tenant)
+
+    if (authResponse.status !== 200) {
+        console.error(`Error authenticating user. Caused by:
+            ${'errorMessage' in authResponse ?
+                authResponse.errorMessage :
+                `Authentication service returned status ${authResponse.status}`} at ${new Date()}`)
+        return {
+            status: 401,
+            errorMessage: 'Error trying authentication.'
+        }
+    }
+
+    const tenantConfig = await getTenantConfig(req.params.tenant, driver)
+
+    if (!tenantConfig) {
+        return {
+            status: 404,
+            errorMessage: 'Tenant not found.'
+        }
+    }
+
+    if (!tenantConfig.driver) {
+        return {
+            status: 404,
+            errorMessage: `Driver for tenant ${req.params.tenant} not found`
+        }
+    }
+
+    if (!initializeDriver(tenantConfig)) {
+        return {
+            status: 404,
+            errorMessage: 'Driver not found.'
+        }
+    }
+
+    return {
+        status: 200,
+        errorMessage: ''
+    }
+}
 
 async function makeAuth(authUrl: string | undefined, token: string, tenant: string): Promise<AuthStatus | ServerError> {
     const authParams = new URLSearchParams({

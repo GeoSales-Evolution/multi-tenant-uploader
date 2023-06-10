@@ -28,28 +28,7 @@ class OneDriveDriver implements Driver {
     }
 
     async uploadFile(fileBytes: any, filename: string): Promise<UploadSuccess | ServerError> {
-        const currentDate: Date = new Date()
-        const tokenBirth: Date = new Date(this.tokenCreationDate)
-
-        const diffTime: any = currentDate.getTime() - tokenBirth.getTime()
-
-        if (diffTime < 0 || diffTime > (3599 * 1000)) {
-            console.log("Invalid Token. Generating a new one. Please, wait...")
-            const accessToken = await this.generateToken()
-
-            if (accessToken) {
-                this.accessToken = accessToken
-                await updateTokenCreationDate(this.tenant, currentDate.toISOString())
-                console.log(`Token to ${this.tenant} was generated.`)
-            } else {
-                console.log(`Upload failed. Could not generate token for ${this.tenant}.`)
-                return {
-                    status: 500,
-                    errorMessage: `Could not generate token for ${this.tenant}.`
-                }
-            }
-        }
-
+        await this.refreshTokenIfNeeded()
         try {
             const uploadResponse = await fetch(
                 `${this.uploadUrl}/`
@@ -114,28 +93,7 @@ class OneDriveDriver implements Driver {
     }
 
     async downloadFile(idFile: string): Promise<DownloadSuccess | ServerError> {
-        const currentDate: Date = new Date()
-        const tokenBirth: Date = new Date(this.tokenCreationDate)
-
-        const diffTime: any = currentDate.getTime() - tokenBirth.getTime()
-
-        if (diffTime < 0 || diffTime > (3599 * 1000)) {
-            console.log("Invalid Token. Generating a new one. Please, wait...")
-            const accessToken = await this.generateToken()
-
-            if (accessToken) {
-                this.accessToken = accessToken
-                await updateTokenCreationDate(this.tenant, currentDate.toISOString())
-                console.log(`Token to ${this.tenant} was generated.`)
-            } else {
-                console.log(`Upload failed. Could not generate token for ${this.tenant}.`)
-                return {
-                    status: 500,
-                    errorMessage: `Could not generate token for ${this.tenant}.`
-                }
-            }
-        }
-
+        await this.refreshTokenIfNeeded()
         try {
             const oneDriveFileMetadata = await fetch(
                 `${this.downloadUrl}/`
@@ -173,6 +131,27 @@ class OneDriveDriver implements Driver {
                 status: 500,
                 errorMessage: 'Download failed. Could not download to OneDrive.'
             }
+        }
+    }
+
+    async refreshTokenIfNeeded(): Promise<void> {
+        const currentDate: Date = new Date()
+        const tokenBirth: Date = new Date(this.tokenCreationDate)
+
+        const diffTime: any = currentDate.getTime() - tokenBirth.getTime()
+
+        if (diffTime < 0 || diffTime > (3599 * 1000)) {
+            console.log("Invalid Token. Generating a new one. Please, wait...")
+            const accessToken = await this.generateToken()
+
+            if (!accessToken) {
+                console.log(`Upload failed. Could not generate token for ${this.tenant}.`)
+                return
+            }
+
+            this.accessToken = accessToken
+            await updateTokenCreationDate(this.tenant, currentDate.toISOString())
+            console.log(`Token to ${this.tenant} was generated.`)
         }
     }
 

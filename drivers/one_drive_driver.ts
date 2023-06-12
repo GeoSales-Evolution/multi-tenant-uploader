@@ -1,4 +1,4 @@
-import { updateAccessToken, updateTokenCreationDate } from "../db/db.js"
+import { storeSavedFileMetadata, updateAccessToken, updateTokenCreationDate } from "../db/db.js"
 
 class OneDriveDriver implements Driver {
     tenant: string
@@ -73,17 +73,35 @@ class OneDriveDriver implements Driver {
                     status: uploadResponse.status,
                     errorMessage: uploadJson.error.message
                 }
-            } else {
+            }
+
+            const idFromDB = await storeSavedFileMetadata({
+                tenant: this.tenant,
+                driver: "one_drive",
+                id_file_driver: uploadJson.id,
+                name: uploadJson.name,
+                path: uploadJson.parentReference.path,
+                size: uploadJson.size,
+                mime_type: uploadJson.file.mimeType,
+                creation_date: uploadJson.createdDateTime,
+            })
+
+            if (!idFromDB) {
                 return {
-                    id: uploadJson.id,
-                    status: uploadResponse.status,
-                    msg: `File ${filename} saved as ${uploadJson.name}`,
-                    createdDateTime: uploadJson.createdDateTime,
-                    name: uploadJson.name,
-                    path: uploadJson.parentReference.path,
-                    size: uploadJson.size,
-                    mimeType: uploadJson.file.mimeType,
+                    status: 500,
+                    errorMessage: "Upload Failed. Try again later.",
                 }
+            }
+
+            return {
+                id: idFromDB,
+                status: uploadResponse.status,
+                msg: `File ${filename} saved as ${uploadJson.name}`,
+                createdDateTime: uploadJson.createdDateTime,
+                name: uploadJson.name,
+                path: uploadJson.parentReference.path,
+                size: uploadJson.size,
+                mimeType: uploadJson.file.mimeType,
             }
         } catch (error) {
             console.log('Upload failed. Could not upload to OneDrive.')

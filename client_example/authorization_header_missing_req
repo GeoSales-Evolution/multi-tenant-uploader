@@ -9,6 +9,7 @@ filePath=$1
 response=$(curl -X POST \
     -H "Content-Type: application/octet-stream" \
     -H "Authorization: " \
+    -H "driver: ${driver}" \
     ${url}/${tenant}
 )
 

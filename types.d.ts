@@ -1,6 +1,12 @@
 type TenantConfig = {
     tenant: string,
-    driver: string,
+    driver: string | null,
+    properties: {
+        upload_folder: string
+    } | null
+}
+
+type OneDriveConfig = TenantConfig & {
     properties: {
         access_token: string | null,
         token_creation_date: string | null,

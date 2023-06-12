@@ -13,18 +13,18 @@ class OneDriveDriver implements Driver {
     grantType: string
     scope: string
 
-    constructor(tenantConfig: TenantConfig) {
+    constructor(tenantConfig: OneDriveConfig) {
         this.tenant =  tenantConfig.tenant,
-        this.accessToken = tenantConfig!.properties.access_token!,
-        this.tokenCreationDate = tenantConfig!.properties.token_creation_date!,
-        this.tokenUrl = tenantConfig!.properties.token_url!,
-        this.uploadUrl = tenantConfig!.properties.upload_url!,
-        this.downloadUrl = tenantConfig!.properties.download_url!,
-        this.uploadFolder = tenantConfig!.properties.upload_folder,
-        this.clientId = tenantConfig!.properties.client_id!,
-        this.clientSecret = tenantConfig!.properties.client_secret!,
-        this.grantType = tenantConfig!.properties.grant_type!
-        this.scope = tenantConfig!.properties.scope!
+        this.accessToken = tenantConfig.properties.access_token!,
+        this.tokenCreationDate = tenantConfig.properties.token_creation_date!,
+        this.tokenUrl = tenantConfig.properties.token_url!,
+        this.uploadUrl = tenantConfig.properties.upload_url!,
+        this.downloadUrl = tenantConfig.properties.download_url!,
+        this.uploadFolder = tenantConfig.properties.upload_folder,
+        this.clientId = tenantConfig.properties.client_id!,
+        this.clientSecret = tenantConfig.properties.client_secret!,
+        this.grantType = tenantConfig.properties.grant_type!
+        this.scope = tenantConfig.properties.scope!
     }
 
     async uploadFile(fileBytes: any, filename: string): Promise<UploadSuccess | ServerError> {
@@ -66,7 +66,7 @@ class OneDriveDriver implements Driver {
                 }
             )
             const uploadJson = await uploadResponse.json()
-    
+
             if (uploadResponse.status !== 200 && uploadResponse.status !== 201) {
                 console.log(`${uploadJson.error.message}`)
                 return {
@@ -125,7 +125,6 @@ class OneDriveDriver implements Driver {
             console.log(error)
             return null
         }
-        
     }
 }
 

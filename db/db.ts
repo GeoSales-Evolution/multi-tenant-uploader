@@ -18,30 +18,48 @@ try {
     throw error
 }
 
-async function getTenantConfig(tenant: string): Promise<any> {
+async function getTenantConfig(tenant: string, driver: string): Promise<TenantConfig | null> {
     const db: Db = client.db(dbName)
-    const tenantDoc = await db.collection('tenants_drivers')
-        .findOne({tenant: `${tenant}`})
-    return tenantDoc
+    const tenantDoc = await db.collection('tenant_driver')
+        .findOne(
+            {tenant: `${tenant}`},
+            {projection: {
+                    tenant: 1,
+                    drivers: {$elemMatch: {"type": `${driver}`}}
+            }})
+
+    if (!tenantDoc) {
+        return null
+    }
+
+    return tenantDoc.drivers ? {
+        tenant: tenantDoc.tenant,
+        driver: tenantDoc.drivers[0].type,
+        properties: tenantDoc.drivers[0].properties
+    } : {
+        tenant: tenantDoc.tenant,
+        driver: null,
+        properties: null
+    }
 }
 
 async function updateTokenCreationDate(tenant:string, newDate: string): Promise<void> {
     const db: Db = client.db(dbName)
-    db.collection('tenants_drivers').updateOne(
+
+    db.collection('tenant_driver').updateOne(
         { tenant: `${tenant}` },
-        {
-          $set: { "properties.token_creation_date": `${newDate}` },
-        }
+        {$set: { "drivers.$[i].properties.token_creation_date": `${newDate}` }},
+        {arrayFilters: [{"i.type": "one_drive"}]}
      )
 }
 
 async function updateAccessToken(tenant: string, newToken: string): Promise<void> {
     const db: Db = client.db(dbName)
-    db.collection('tenants_drivers').updateOne(
+
+    db.collection('tenant_driver').updateOne(
         { tenant: `${tenant}` },
-        {
-          $set: { "properties.access_token": `${newToken}` },
-        }
+        {$set: { "drivers.$[i].properties.access_token": `${newToken}` }},
+        {arrayFilters: [{"i.type": "one_drive"}]}
      )
 }
 

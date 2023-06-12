@@ -3,13 +3,12 @@ import { config as dotenvConfig } from "dotenv-safe"
 
 dotenvConfig()
 
-const dbServer: string | undefined = process.env.DB_SERVER
-const dbUser: string | undefined = process.env.DB_USER
-const dbPassword: string | undefined = process.env.DB_PASSWORD
-const dbName: string | undefined = process.env.DB_NAME
+const host: string = process.env.HOST_IP || 'localhost';
+const port: number = parseInt(process.env.PORT || '27017');
 
-const urlConnection: string = `${dbServer}://${dbUser}:${dbPassword}@presente.s2xbxel.mongodb.net/`
-const client: MongoClient = new MongoClient(urlConnection)
+const client: MongoClient = new MongoClient(`mongodb://${host}:${port}`);
+
+const dbName: string | undefined = process.env.DB_NAME
 
 try {
     await client.connect()

@@ -21,7 +21,7 @@ type OneDriveConfig = TenantConfig & {
     }
 }
 
-type StoredFile = {
+type FileMetadata = {
     tenant: string,
     driver: string,
     id_file_driver: string,

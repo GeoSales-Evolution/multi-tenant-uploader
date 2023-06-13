@@ -48,6 +48,12 @@ type UploadSuccess = {
     mimeType: string,
 }
 
+type DownloadSuccess = {
+    buffer: Buffer,
+    name: string,
+    mimeType: string,
+}
+
 type AuthStatus = {
     status: number,
 }

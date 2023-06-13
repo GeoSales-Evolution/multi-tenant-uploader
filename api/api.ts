@@ -41,12 +41,7 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
         return
     }
 
-    const authParams = new URLSearchParams({
-        token: token,
-        tenant: req.params.tenant
-    });
-
-    const authResponse = await makeAuth(authUrl, authParams)
+    const authResponse = await makeAuth(authUrl, token, req.params.tenant)
 
     if (authResponse.status !== 200) {
         console.error(`Error authenticating user. Caused by:
@@ -89,7 +84,12 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
     return
 })
 
-async function makeAuth(authUrl: string | undefined, authParams: URLSearchParams): Promise<AuthStatus | ServerError> {
+async function makeAuth(authUrl: string | undefined, token: string, tenant: string): Promise<AuthStatus | ServerError> {
+    const authParams = new URLSearchParams({
+        token: token,
+        tenant: tenant
+    })
+
     try {
       const response = await fetch(`${authUrl}?${authParams}`);
         return {status: response.status};

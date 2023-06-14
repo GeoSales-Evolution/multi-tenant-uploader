@@ -1,5 +1,5 @@
 #!/bin/bash
-folder_path="../file-mocks"
+folder_path="../../file-mocks"
 
 script_path="./req"
 

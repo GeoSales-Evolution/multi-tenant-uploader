@@ -1,4 +1,4 @@
-import { storeSavedFileMetadata, updateAccessToken, updateTokenCreationDate } from "../db/db.js"
+import { getUploadMetadataById, storeSavedFileMetadata, updateAccessToken, updateTokenCreationDate } from "../db/db.js"
 
 class OneDriveDriver implements Driver {
     tenant: string
@@ -113,8 +113,67 @@ class OneDriveDriver implements Driver {
         }
     }
 
-    async downloadFile(idFile: string): Promise<string | null> {
-        return null
+    async downloadFile(idFile: string): Promise<DownloadSuccess | ServerError> {
+        const currentDate: Date = new Date()
+        const tokenBirth: Date = new Date(this.tokenCreationDate)
+
+        const diffTime: any = currentDate.getTime() - tokenBirth.getTime()
+
+        if (diffTime < 0 || diffTime > (3599 * 1000)) {
+            console.log("Invalid Token. Generating a new one. Please, wait...")
+            const accessToken = await this.generateToken()
+
+            if (accessToken) {
+                this.accessToken = accessToken
+                await updateTokenCreationDate(this.tenant, currentDate.toISOString())
+                console.log(`Token to ${this.tenant} was generated.`)
+            } else {
+                console.log(`Upload failed. Could not generate token for ${this.tenant}.`)
+                return {
+                    status: 500,
+                    errorMessage: `Could not generate token for ${this.tenant}.`
+                }
+            }
+        }
+
+        try {
+            const oneDriveFileMetadata = await fetch(
+                `${this.downloadUrl}/`
+                + `${idFile}`
+                + `?select=id,@microsoft.graph.downloadUrl,name,file`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${this.accessToken}`
+                    }
+                }
+            )
+            const fileMetadataJSON = await oneDriveFileMetadata.json()
+
+            if (oneDriveFileMetadata.status !== 200) {
+                console.log(`${fileMetadataJSON.error.message}`)
+                return {
+                    status: oneDriveFileMetadata.status,
+                    errorMessage: fileMetadataJSON.error.message
+                }
+            }
+
+            const fileBytesOneDrive: Response = await fetch(`${fileMetadataJSON['@microsoft.graph.downloadUrl']}`)
+            const buffer = await this.convert2buffer(fileBytesOneDrive)
+
+            return {
+                buffer: buffer,
+                name: fileMetadataJSON.name,
+                mimeType: fileMetadataJSON.file.mimeType,
+            }
+        } catch (error) {
+            console.log('Download failed. Could not download to OneDrive.')
+            console.log(error)
+            return {
+                status: 500,
+                errorMessage: 'Download failed. Could not download to OneDrive.'
+            }
+        }
     }
 
     async generateToken(): Promise<string | null> {
@@ -143,6 +202,12 @@ class OneDriveDriver implements Driver {
             console.log(error)
             return null
         }
+    }
+
+    async convert2buffer(fileBytesOneDrive: Response): Promise<Buffer> {
+        const blob = await fileBytesOneDrive.blob()
+        const arrayBuffer = await blob.arrayBuffer()
+        return await Buffer.from(arrayBuffer)
     }
 }
 

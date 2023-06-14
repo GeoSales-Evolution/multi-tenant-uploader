@@ -20,8 +20,11 @@ class FileSystemDriver implements Driver {
         }
     }
 
-    async downloadFile(idFile: string): Promise<string | null> {
-        return null
+    async downloadFile(idFile: string): Promise<DownloadSuccess | ServerError> {
+        return {
+            status: 500,
+            errorMessage: "The driver file_system is unable to download file"
+        }
     }
 }
 

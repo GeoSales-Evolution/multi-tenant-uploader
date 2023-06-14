@@ -21,7 +21,7 @@ type OneDriveConfig = TenantConfig & {
     }
 }
 
-type StoredFile = {
+type FileMetadata = {
     tenant: string,
     driver: string,
     id_file_driver: string,
@@ -45,6 +45,12 @@ type UploadSuccess = {
     name: string,
     path: string,
     size: number,
+    mimeType: string,
+}
+
+type DownloadSuccess = {
+    buffer: Buffer,
+    name: string,
     mimeType: string,
 }
 

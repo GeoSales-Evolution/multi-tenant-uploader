@@ -20,4 +20,8 @@ async function uploadFile(bytes: any, filename: string): Promise<UploadSuccess |
     return await driver.uploadFile(bytes, filename)
 }
 
-export { initializeDriver, uploadFile }
+async function downloadFile(idFile: string): Promise<DownloadSuccess | ServerError> {
+    return await driver.downloadFile(idFile)
+}
+
+export { initializeDriver, uploadFile, downloadFile }

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source ./../auth_vars
+url=localhost:3003/download
+
+response=$(curl \
+    -H "Authorization: Bearer " \
+    ${url}/${tenant}/${idFile}
+)
+
+echo $response

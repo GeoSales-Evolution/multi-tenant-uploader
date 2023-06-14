@@ -1,7 +1,7 @@
 #!/bin/bash
 export LC_ALL=C.UTF-8 #prevents grep error
 
-source ./auth_vars
+source ./../auth_vars
 url=localhost:3003/upload
 
 filePath=$1

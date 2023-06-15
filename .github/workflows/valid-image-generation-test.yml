@@ -43,6 +43,10 @@ jobs:
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+      - name: Docker run Mongo instance
+        run: |
+          ls
+
       - name: Run Docker container
         run: |
           (timeout 60s docker run --env-file "$(pwd)/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||

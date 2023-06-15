@@ -48,9 +48,11 @@ jobs:
           ls
           cd db/mongo/
           ls
-          docker build -t mongo_db_4_uploade .
+          docker build -t mongo_db_4_uploader .
           docker image ls -a
           docker run -d -p 27017:27017 --name mongo_db_4_uploader mongo_db_4_uploader
+          echo "---------"
+          docker ps
 
 
 

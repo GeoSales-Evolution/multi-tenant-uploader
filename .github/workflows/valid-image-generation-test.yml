@@ -36,7 +36,7 @@ jobs:
         run: |
           printf "
             URL_AUTH_SERVICE=$URL_AUTH_SERVICE\n
-            HOST_IP=localhost\n
+            HOST_IP=0.0.0.0\n
             DB_NAME=${{ secrets.DB_NAME }}
             " > .env
 

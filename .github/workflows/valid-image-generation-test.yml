@@ -58,6 +58,8 @@ jobs:
 
       - name: Run Docker container
         run: |
+          docker ps 
+          echo "---- post docker ps2"
           (timeout 60s docker run --env-file "$(pwd)/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
           if [ $? -eq 124 ]; then
             echo "OK, timeout error is acceptable."

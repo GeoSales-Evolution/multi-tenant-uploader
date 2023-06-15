@@ -53,6 +53,8 @@ jobs:
           docker run -d -p 27017:27017 --name mongo_db_4_uploader mongo_db_4_uploader
           echo "---------"
           docker ps
+          bash scripts/insert_data_from_file.sh scripts/exemple_file_for_inserting_2_tenant_driver
+          bash scripts/4_query_collections.sh
 
 
 

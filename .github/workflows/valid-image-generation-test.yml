@@ -46,6 +46,11 @@ jobs:
       - name: Docker run Mongo instance
         run: |
           ls
+          cd db/mongo/scripts/
+          docker build -t mongo_db_4_uploade .
+          docker image ls -a
+
+
 
       - name: Run Docker container
         run: |

@@ -53,6 +53,11 @@ jobs:
           docker run -d -p 27017:27017 --name mongo_db_4_uploader mongo_db_4_uploader
           echo "---------"
           docker ps
+          echo "---------"
+          wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/5.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+          sudo apt update
+          sudo apt install -y mongosh
           bash scripts/insert_data_from_file.sh scripts/exemple_file_for_inserting_2_tenant_driver
           bash scripts/4_query_collections.sh
 

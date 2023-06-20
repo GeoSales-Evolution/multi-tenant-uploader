@@ -5,7 +5,7 @@ import { config as dotenvConfig } from "dotenv-safe"
 import { getTenantConfig, getUploadMetadataById } from '../db/db.js'
 import { downloadFile, initializeDriver, uploadFile } from '../drivers/driver_manager.js'
 
-const MAX_SHARED_API_FILE_SIZE = '5mb'
+const MAX_SHARED_API_FILE_SIZE = '15mb'
 const app = express()
 app.use(bodyParser.raw({type: 'application/octet-stream', limit : MAX_SHARED_API_FILE_SIZE}))
 

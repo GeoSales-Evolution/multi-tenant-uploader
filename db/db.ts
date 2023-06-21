@@ -3,13 +3,13 @@ import { config as dotenvConfig } from "dotenv-safe"
 
 dotenvConfig()
 
-const dbServer: string | undefined = process.env.DB_SERVER
-const dbUser: string | undefined = process.env.DB_USER
-const dbPassword: string | undefined = process.env.DB_PASSWORD
-const dbName: string | undefined = process.env.DB_NAME
+const dbName: string | undefined = process.env.DB_NAME;
+const mongoEndpoint: string | undefined = process.env.MONGO_ENDPOINT;
+const mongoUser: string | undefined = process.env.MONGO_USER;
+const mongoPassword: string | undefined = process.env.MONGO_PASSWORD;
+const authSource: string | undefined = process.env.AUTH_SOURCE;
 
-const urlConnection: string = `${dbServer}://${dbUser}:${dbPassword}@presente.s2xbxel.mongodb.net/`
-const client: MongoClient = new MongoClient(urlConnection)
+const client: MongoClient = new MongoClient(`mongodb://${mongoUser}:${mongoPassword}@${mongoEndpoint}/${dbName}?authSource=${authSource}`);
 
 try {
     await client.connect()

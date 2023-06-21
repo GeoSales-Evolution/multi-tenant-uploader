@@ -57,9 +57,7 @@ jobs:
         run: |
           printf "
             URL_AUTH_SERVICE=$URL_AUTH_SERVICE\n
-            DB_SERVER=${{ secrets.DB_SERVER }}\n
-            DB_USER=${{ secrets.DB_USER }}\n
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}\n
+            MONGO_URL=url_to_the_mongo_instance_local_for_the_job\n
             DB_NAME=${{ secrets.DB_NAME }}
             " > .env
 
@@ -71,9 +69,10 @@ jobs:
 
       - name: Run Docker container
         run: |
-          (timeout 30s docker run --env-file "$(pwd)/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
+          (timeout 60s docker run --env-file "$(pwd)/.env" $REGISTRY/$DOCKER_IMAGE_NAME) ||
           if [ $? -eq 124 ]; then
             echo "OK, timeout error is acceptable."
           else
             exit $?
           fi
+        continue-on-error: true

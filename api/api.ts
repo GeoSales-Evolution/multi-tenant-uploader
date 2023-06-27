@@ -16,7 +16,7 @@ const authUrl = process.env.URL_AUTH_SERVICE;
 app.post('/upload/:tenant', handleUpload)
 app.get('/download/:tenant/:idFile', handleDownload)
 
-app.get('/about', (req: express.Request, res: express.Response) => {
+app.get('/about', (res: express.Response) => {
     res.send('This the Uploader App.');
 })
 

@@ -81,6 +81,23 @@ app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.R
 })
 
 async function checkin(req: express.Request, driver: string): Promise<ServerError> {
+    const authResult = await handleTokenAuthentication(req);
+    if (authResult.status !== 200) {
+        return authResult
+    }
+
+    const configResult = await handleTenantAndDriverConfig(req, driver);
+    if (configResult.status !== 200) {
+        return configResult
+    }
+
+    return {
+        status: 200,
+        errorMessage: '',
+    }
+}
+
+async function handleTokenAuthentication(req: express.Request): Promise<ServerError> {
     const authHeader = req.headers['authorization']
     if (!authHeader) {
         return {
@@ -110,7 +127,14 @@ async function checkin(req: express.Request, driver: string): Promise<ServerErro
         }
     }
 
-    const tenantConfig = await getTenantConfig(req.params.tenant, driver)
+    return {
+      status: 200,
+      errorMessage: '',
+    }
+}
+
+async function handleTenantAndDriverConfig(req: express.Request, driver: string): Promise<ServerError> {
+    const tenantConfig = await getTenantConfig(req.params.tenant, driver);
 
     if (!tenantConfig) {
         return {

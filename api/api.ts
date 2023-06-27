@@ -97,7 +97,7 @@ async function checkin(req: express.Request, driver: string): Promise<ServerErro
         }
     }
 
-    const authResponse = await makeAuth(authUrl, token, req.params.tenant)
+    const authResponse = await makeTokenAuth(authUrl, token, req.params.tenant)
 
     if (authResponse.status !== 200) {
         console.error(`Error authenticating user. Caused by:
@@ -139,7 +139,7 @@ async function checkin(req: express.Request, driver: string): Promise<ServerErro
     }
 }
 
-async function makeAuth(authUrl: string | undefined, token: string, tenant: string): Promise<AuthStatus | ServerError> {
+async function makeTokenAuth(authUrl: string | undefined, token: string, tenant: string): Promise<AuthStatus | ServerError> {
     const authParams = new URLSearchParams({
         token: token,
         tenant: tenant

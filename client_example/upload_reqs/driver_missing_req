@@ -10,7 +10,7 @@ filename=$(echo "$filePath" | grep -oP "(?<=/)[^/]+$")
 response=$(curl -X POST \
     -H "Content-Type: application/octet-stream" \
     -H "Authorization: Bearer ${token}" \
-    -H "Content-Disposition: attachment; filename=${filename}" \
+    -H "Content-Disposition: attachment; filename=\"${filename}\"" \
     --data-binary "@${filePath}" \
     ${url}/${tenant}
 )

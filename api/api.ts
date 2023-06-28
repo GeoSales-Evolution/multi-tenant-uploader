@@ -13,6 +13,10 @@ dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE;
 
+app.get('/about', (req: express.Request, res: express.Response) => {
+    res.send('This the Uploader App.')
+})
+
 app.post('/upload/:tenant', async (req: express.Request, res: express.Response) => {
     if (req.headers['content-type'] !== 'application/octet-stream') {
         console.error(`Bad Request at ${new Date()}`)

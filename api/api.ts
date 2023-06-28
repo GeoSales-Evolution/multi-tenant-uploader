@@ -13,11 +13,14 @@ dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE;
 
+app.post('/upload/:tenant', handleUpload)
+app.get('/download/:tenant/:idFile', handleDownload)
+
 app.get('/about', (req: express.Request, res: express.Response) => {
     res.send('This the Uploader App.')
 })
 
-app.post('/upload/:tenant', async (req: express.Request, res: express.Response) => {
+async function handleUpload(req: express.Request, res: express.Response) {
     if (req.headers['content-type'] !== 'application/octet-stream') {
         console.error(`Bad Request at ${new Date()}`)
         res.status(400).send('Bad Request')
@@ -49,9 +52,9 @@ app.post('/upload/:tenant', async (req: express.Request, res: express.Response) 
 
     res.status(uploadJsonResponse.status).send(uploadJsonResponse)
     return
-})
+}
 
-app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.Response) => {
+async function handleDownload(req: express.Request, res: express.Response) {
     const fileMetadata = await getUploadMetadataById(req.params.idFile)
     if (!fileMetadata) {
         console.error(`File metadata was not found at ${new Date()}`)
@@ -78,9 +81,26 @@ app.get('/download/:tenant/:idFile', async (req: express.Request, res: express.R
     res.set('Content-Disposition', `atachment; filename=${downloadJsonResponse.name}`)
 
     res.send(downloadJsonResponse.buffer)
-})
+}
 
 async function checkin(req: express.Request, driver: string): Promise<ServerError> {
+    const authResult = await handleAuth(req);
+    if (authResult.status !== 200) {
+        return authResult
+    }
+
+    const configResult = await handleTenantAndDriverConfig(req, driver);
+    if (configResult.status !== 200) {
+        return configResult
+    }
+
+    return {
+        status: 200,
+        errorMessage: '',
+    }
+}
+
+async function handleAuth(req: express.Request): Promise<ServerError> {
     const authHeader = req.headers['authorization']
     if (!authHeader) {
         return {
@@ -110,7 +130,14 @@ async function checkin(req: express.Request, driver: string): Promise<ServerErro
         }
     }
 
-    const tenantConfig = await getTenantConfig(req.params.tenant, driver)
+    return {
+      status: 200,
+      errorMessage: '',
+    }
+}
+
+async function handleTenantAndDriverConfig(req: express.Request, driver: string): Promise<ServerError> {
+    const tenantConfig = await getTenantConfig(req.params.tenant, driver);
 
     if (!tenantConfig) {
         return {

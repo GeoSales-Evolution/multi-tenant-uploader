@@ -153,12 +153,17 @@ async function makeAuth(authUrl: string | undefined, token: string, tenant: stri
 }
 
 function getFilename(req: express.Request): string {
-    const dispositionHeader: string | undefined = req.headers['content-disposition']
-    const disposition: contentDisposition.ContentDisposition | null = dispositionHeader
-        ? contentDisposition.parse(dispositionHeader)
-        : null
+    try {
+        const dispositionHeader: string | undefined = req.headers['content-disposition']
+        const disposition: contentDisposition.ContentDisposition | null = dispositionHeader
+            ? contentDisposition.parse(dispositionHeader)
+            : null
 
-    return disposition?.parameters.filename || 'default-filename.txt'
+        return disposition?.parameters.filename || 'default-filename'
+    } catch (error: any) {
+        console.error(error)
+        return 'default-filename'
+    }
 }
 
 export default app

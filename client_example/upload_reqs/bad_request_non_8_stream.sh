@@ -11,7 +11,7 @@ filename=$(echo "$filePath" | grep -oP "(?<=/)[^/]+$")
 # line removed -H "Content-Type: application/octet-stream" \
 response=$(curl -X POST \
     -H "Authorization: Bearer ${token}" \
-    -H "Content-Disposition: attachment; filename=${filename}" \
+    -H "Content-Disposition: attachment; filename=\"${filename}\"" \
     -H "driver: ${driver}" \
     --data-binary "@${filePath}" \
     ${url}/${tenant}

@@ -5,6 +5,6 @@ script_path="./req"
 
 for file in $folder_path/*; do
     if [ -f "$file" ]; then
-        bash $script_path $file
+        bash $script_path "$file"
     fi
 done

@@ -1,0 +1,22 @@
+{
+  tenant: 'tenant name',
+  drivers: [
+    {
+      type: 'one_drive',
+      properties: {
+        access_token: 'insert your access token from one drive here',
+        tenant_id: 'tenant id',
+        token_url: 'token url',
+        upload_url: 'https://graph.microsoft.com/this is just a mock',
+        client_id: 'client id',
+        client_secret: 'client secret',
+        grant_type: 'client_credentials',
+        scope: 'https://graph.microsoft.com/.default',
+        upload_folder: 'upload folder',
+        limit_file_size: '4mb',
+        download_url: 'download url',
+        token_creation_date: 'token date'
+      }
+    }
+  ]
+}

@@ -1,9 +1,6 @@
 name: Deploy and Test GitHub Package
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 env:
    REGISTRY: ghcr.io
@@ -36,7 +33,9 @@ jobs:
         run: docker build -t $REGISTRY/$DOCKER_IMAGE_NAME .
 
       - name: Push Docker image to GitHub Packages
-        run: docker push $REGISTRY/$DOCKER_IMAGE_NAME
+        run: |
+          VERSION="$(egrep '"version"\s*:' package.json | cut -d \" -f 4)"
+          echo $VERSION
 
 
   test-newly-updated-image-locally:

@@ -38,6 +38,8 @@ jobs:
           docker build -t $REGISTRY/$DOCKER_IMAGE_NAME:$VERSION -t $REGISTRY/$DOCKER_IMAGE_NAME:latest .
           echo $VERSION
           docker image ls
+          docker push "$REGISTRY/$DOCKER_IMAGE_NAME:$VERSION"
+          docker push "$REGISTRY/$DOCKER_IMAGE_NAME:latest"
 
 
 

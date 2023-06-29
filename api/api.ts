@@ -15,9 +15,7 @@ const authUrl = process.env.URL_AUTH_SERVICE;
 const whitelistedIP = process.env.WHITELISTED_IP
 
 app.post('/upload/:tenant', handleUpload)
-app.post('/upload/ip-restricted/:tenant', handleIpRestrictedUpload)
 app.get('/download/:tenant/:idFile', handleDownload)
-app.get('/download/ip-restricted/:tenant/:idFile', handleIpRestrictedDownload)
 
 app.get('/about', (req: express.Request, res: express.Response) => {
     res.send('This the Uploader App.')
@@ -86,82 +84,6 @@ async function handleDownload(req: express.Request, res: express.Response) {
     res.send(downloadJsonResponse.buffer)
 }
 
-async function handleIpRestrictedUpload(req: express.Request, res: express.Response) {
-    if (isIPInvalid(req.ip)) {
-        console.error(`Unauthorized client requested ip restricted route at ${new Date()}`)
-        res.status(401).send("Unauthorized client requested ip restricted route.")
-        return
-    }
-
-    if (req.headers['content-type'] !== 'application/octet-stream') {
-        console.error(`Bad Request at ${new Date()}`)
-        res.status(400).send('Bad Request')
-        return
-    }
-
-    const driverHeader = req.headers['driver'] as string
-    if (!driverHeader) {
-        console.error(`Missing driver header at ${new Date()}`)
-        res.status(400).send('Missing driver header')
-        return
-    }
-
-    const driverConfigResponse = await handleTenantAndDriverConfig(req, driverHeader)
-    if (driverConfigResponse.status !== 200) {
-        console.error(`${driverConfigResponse.errorMessage} at ${new Date()}`)
-        res.status(driverConfigResponse.status).send(driverConfigResponse.errorMessage)
-        return
-    }
-
-    const filename: string = getFilename(req)
-    const uploadJsonResponse = await uploadFile(req.body, filename)
-
-    if ('errorMessage' in uploadJsonResponse) {
-        console.error(`Error uploading file. at ${new Date()}\n${uploadJsonResponse.errorMessage}`)
-        res.status(500).send('Error uploading file.')
-        return
-    }
-
-    res.status(uploadJsonResponse.status).send(uploadJsonResponse)
-    return
-}
-
-
-async function handleIpRestrictedDownload(req: express.Request, res: express.Response) {
-    if (isIPInvalid(req.ip)) {
-        console.error(`Unauthorized client requested ip restricted route at ${new Date()}`)
-        res.status(401).send("Unauthorized client requested ip restricted route.")
-        return
-    }
-
-    const fileMetadata = await getUploadMetadataById(req.params.idFile)
-    if (!fileMetadata) {
-        console.error(`File metadata was not found at ${new Date()}`)
-        res.status(404).send(`File metadata was not found.`)
-        return
-    }
-
-    const checkinResponse = await checkin(req, fileMetadata.driver)
-    if (checkinResponse.status !== 200) {
-        console.error(`${checkinResponse.errorMessage!} at ${new Date()}`)
-        res.status(checkinResponse.status).send(checkinResponse.errorMessage!)
-        return
-    }
-
-    const downloadJsonResponse = await downloadFile(fileMetadata.id_file_driver)
-
-    if ('errorMessage' in downloadJsonResponse) {
-        console.error(`Error downloading file at ${new Date()}\n${downloadJsonResponse.errorMessage}`)
-        res.status(downloadJsonResponse.status).send(downloadJsonResponse.errorMessage)
-        return
-    }
-
-    res.set('Content-Type', `${downloadJsonResponse.mimeType}`)
-    res.set('Content-Disposition', `atachment; filename=${downloadJsonResponse.name}`)
-
-    res.send(downloadJsonResponse.buffer)
-}
-
 async function checkin(req: express.Request, driver: string): Promise<ServerError> {
     const authResult = await handleAuth(req);
     if (authResult.status !== 200) {
@@ -180,6 +102,16 @@ async function checkin(req: express.Request, driver: string): Promise<ServerErro
 }
 
 async function handleAuth(req: express.Request): Promise<ServerError> {
+    const authOk = {
+        status: 200,
+        errorMessage: '',
+    }
+
+    if (isIPAuthorized(req.ip)) {
+        console.log(req.ip)
+        return authOk
+    }
+
     const authHeader = req.headers['authorization']
     if (!authHeader) {
         return {
@@ -209,10 +141,7 @@ async function handleAuth(req: express.Request): Promise<ServerError> {
         }
     }
 
-    return {
-      status: 200,
-      errorMessage: '',
-    }
+    return authOk
 }
 
 async function handleTenantAndDriverConfig(req: express.Request, driver: string): Promise<ServerError> {
@@ -276,8 +205,8 @@ function getFilename(req: express.Request): string {
     }
 }
 
-function isIPInvalid(clientIP: string): boolean {
-    return clientIP !== whitelistedIP
+function isIPAuthorized(clientIP: string): boolean {
+    return clientIP === whitelistedIP
 }
 
 export default app

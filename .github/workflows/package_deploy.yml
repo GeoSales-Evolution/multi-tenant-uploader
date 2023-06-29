@@ -37,6 +37,10 @@ jobs:
           VERSION="$(egrep '"version"\s*:' package.json | cut -d \" -f 4)"
           docker build -t $REGISTRY/$DOCKER_IMAGE_NAME:$VERSION -t $REGISTRY/$DOCKER_IMAGE_NAME:latest .
           echo $VERSION
+          if docker pull "$REGISTRY/$DOCKER_IMAGE_NAME:$VERSION"; then
+            echo "Version already built $REGISTRY/$DOCKER_IMAGE_NAME:$VERSION, aborting." >&2
+            exit 1
+          fi
           docker image ls
           docker push "$REGISTRY/$DOCKER_IMAGE_NAME:$VERSION"
           docker push "$REGISTRY/$DOCKER_IMAGE_NAME:latest"

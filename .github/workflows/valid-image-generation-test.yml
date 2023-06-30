@@ -42,6 +42,11 @@ jobs:
           echo "mongod version is $(mongod --version)"
           echo "mongosh version is $(mongosh --version)"
 
+      - name: Start MongoDB and verify status
+        run: |
+          systemctl start mongod
+          systemctl status mongod
+
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 

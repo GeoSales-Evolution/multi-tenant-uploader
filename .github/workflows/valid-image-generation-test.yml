@@ -34,6 +34,9 @@ jobs:
       - name: Install MongoDB shell (mongosh)
         run: npm install -g mongodb
 
+      - name: Verify mongosh installation
+        run: mongosh --version
+
       - name: Execute mongosh commands
         run: |
           mongosh --eval 'db.version()'

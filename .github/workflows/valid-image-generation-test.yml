@@ -26,26 +26,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Install MongoDB shell (mongosh)
-        run: npm install -g mongodb
-
-      - name: Verify mongo installation
-        run: mongo --version
-
-      - name: Verify mongod installation
-        run: mongod --version
-
-      - name: Verify mongosh installation
-        run: mongosh --version
-
-      - name: Execute mongosh commands
+      - name: Install MongoDB Community Edition
         run: |
-          mongosh --eval 'db.version()'
+          sudo apt-get install gnupg
+          curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

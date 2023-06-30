@@ -44,8 +44,9 @@ jobs:
 
       - name: Start MongoDB and verify status
         run: |
-          systemctl start mongod
+          sudo systemctl start mongod
           systemctl status mongod
+          ls
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

@@ -60,6 +60,10 @@ jobs:
         run: |
           sudo netstat -plnt
 
+      - name: Verify why MongoDB server isn't running on the default port 2701
+        run: |
+          cat /etc/mongod.conf
+
       - name: Use mongosh
         run: |
           sudo mongosh

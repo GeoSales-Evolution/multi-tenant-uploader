@@ -56,6 +56,10 @@ jobs:
         run: |
           mongosh --help
 
+      - name: Verify that the MongoDB server is listening on the default port 2701
+        run: |
+          sudo netstat -plnt | grep 27017
+
       - name: Use mongosh
         run: |
           sudo mongosh

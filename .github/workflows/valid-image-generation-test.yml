@@ -48,9 +48,10 @@ jobs:
           systemctl status mongod
           ls
 
-      - name: Verify that the MongoDB server is listening on the default port 27017
+      - name: The simplest command to evaluate JavaScript code using mongosh
         run: |
-          sudo netstat -plnt | grep 27017
+          sudo mongosh --eval "print('Hello, World!')"
+
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

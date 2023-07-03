@@ -64,6 +64,14 @@ jobs:
         run: |
           cat /etc/mongod.conf
 
+      - name: Allow connections from other IP addresses in Mongo instance
+        run: |
+          sudo sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
+
+      - name: Verify that mongo.config changed
+        run: |
+          cat /etc/mongod.conf
+
       - name: Use mongosh
         run: |
           sudo mongosh

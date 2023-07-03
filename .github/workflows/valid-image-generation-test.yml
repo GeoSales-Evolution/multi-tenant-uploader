@@ -50,7 +50,7 @@ jobs:
 
       - name: Add create Database and populate on mongo
         run: |
-          mongosh --eval "print('Hello, World!')"
+          mongosh
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

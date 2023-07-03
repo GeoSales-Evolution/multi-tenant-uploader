@@ -72,9 +72,12 @@ jobs:
         run: |
           cat /etc/mongod.conf
 
+      - name: Sleep to give time to mongo to catchup
+        run: sleep 20
+
       - name: Use mongosh
         run: |
-          sudo mongosh
+          mongosh --eval "print('Hello, World!')"
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

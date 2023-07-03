@@ -79,6 +79,10 @@ jobs:
         run: |
           mongosh --eval "print('Hello, World!')"
 
+      - name: Insert data
+        run: |
+          mongosh --eval "db.tenant_driver.insertOne(db/mongo/scripts/example_file_for_inserting_2_one_drive)"
+
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 

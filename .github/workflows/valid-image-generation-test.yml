@@ -73,7 +73,7 @@ jobs:
           cat /etc/mongod.conf
 
       - name: Sleep to give time to mongo to catchup
-        run: sleep 20
+        run: sleep 10
 
       - name: Use mongosh
         run: |

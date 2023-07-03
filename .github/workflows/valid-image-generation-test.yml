@@ -48,9 +48,9 @@ jobs:
           systemctl status mongod
           ls
 
-      - name: Add create Database and populate on mongo
+      - name: Verify that the MongoDB server is listening on the default port 27017
         run: |
-          mongosh
+          sudo netstat -plnt | grep 27017
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

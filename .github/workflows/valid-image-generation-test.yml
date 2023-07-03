@@ -45,7 +45,7 @@ jobs:
       - name: Start MongoDB and verify status
         run: |
           sudo systemctl start mongod
-          systemctl status mongod
+          echo "mongod status is:  $(systemctl status mongod)"
           ls
 
       - name: The simplest command to evaluate JavaScript code using mongosh

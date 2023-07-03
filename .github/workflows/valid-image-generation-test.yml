@@ -81,7 +81,7 @@ jobs:
 
       - name: Insert data
         run: |
-          mongosh --eval "db.tenant_driver.insertOne(db/mongo/scripts/example_file_for_inserting_2_one_drive)"
+          mongosh "127.0.0.1:27017/multi_tenant_uploader" --eval "db.tenant_driver.insertOne(db/mongo/scripts/example_file_for_inserting_2_one_drive)"
 
       - name: Lower case DOCKER_IMAGE_NAME
         run: echo "DOCKER_IMAGE_NAME=$(echo $DOCKER_IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV

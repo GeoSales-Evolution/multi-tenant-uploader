@@ -77,7 +77,7 @@ jobs:
 
       - name: Use mongosh
         run: |
-          mongosh --eval "print('Hello, World!')"
+          mongosh "127.0.0.1:27017/multi_tenant_uploader" --eval "print('Hello, World!')"
 
       - name: Insert data
         run: |

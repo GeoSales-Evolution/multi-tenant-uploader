@@ -94,6 +94,11 @@ jobs:
         run: |
           ls /etc/netplan/
           cat /etc/netplan/50-cloud-init.yaml
+          sudo sed -i 's/eth0/ens3/g' /etc/netplan/50-cloud-init.yaml
+          sudo netplan apply
+          echo 'after 50-cloud edit'
+          cat /etc/netplan/50-cloud-init.yaml
+
 
       - name: Machine IP in mongo url string
         run: |

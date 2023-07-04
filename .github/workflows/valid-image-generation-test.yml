@@ -98,6 +98,8 @@ jobs:
           sudo netplan apply
           echo 'after 50-cloud edit'
           cat /etc/netplan/50-cloud-init.yaml
+          echo '-------'
+          ip addr show
 
 
       - name: Machine IP in mongo url string

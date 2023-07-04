@@ -27,7 +27,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: find out machine ip to put in .env
-        run: ip addr show
+        run: |
+          ip addr show
+          ip addr show | awk '/inet.*docker0/{print $2}' | cut -d '/' -f 1
 
       - name: Install MongoDB Community Edition
         run: |

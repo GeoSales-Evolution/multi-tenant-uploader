@@ -92,7 +92,7 @@ jobs:
 
       - name: Machine IP in mongo url string
         run: |
-          MONGO_HOST_IP=$(ip addr show eth0 | awk '/inet / {print $2}' | cut -d '/' -f 1)
+          MONGO_HOST_IP=$(ip addr show | awk '/inet.*docker0/{print $2}' | cut -d '/' -f 1)
           echo $MONGO_HOST_IP
           mongosh "mongodb://$MONGO_HOST_IP:27017/multi_tenant_uploader" --eval "print('Hello, World!')"
 

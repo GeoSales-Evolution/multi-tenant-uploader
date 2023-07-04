@@ -102,10 +102,12 @@ jobs:
 
       - name: Create .env file
         run: |
+          MONGO_HOST_IP=$(ip addr show | awk '/inet.*docker0/{print $2}' | cut -d '/' -f 1)
+          echo $MONGO_HOST_IP
           printf "
             URL_AUTH_SERVICE=$URL_AUTH_SERVICE\n
             WHITELISTED_IP=localhost\n
-            MONGO_URL=mongodb://127.0.0.1:27017/multi_tenant_uploader\n
+            MONGO_URL=mongodb://$MONGO_HOST_IP:27017/multi_tenant_uploader\n
             DB_NAME=${{ secrets.DB_NAME }}
             " > .env
 

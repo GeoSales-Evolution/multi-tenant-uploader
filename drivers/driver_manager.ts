@@ -1,3 +1,4 @@
+import AmazonS3Driver from "./amazon_s3_driver.js"
 import FileSystemDriver from "./file_system_driver.js"
 import OneDriveDriver from "./one_drive_driver.js"
 
@@ -10,6 +11,9 @@ function initializeDriver(tenantConfig: TenantConfig): boolean {
             return true
         case "one_drive":
             driver = new OneDriveDriver(tenantConfig as OneDriveConfig)
+            return true
+        case "amazon_s3":
+            driver = new AmazonS3Driver(tenantConfig as AmazonS3Config)
             return true
         default:
             return false

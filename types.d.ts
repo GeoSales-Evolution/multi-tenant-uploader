@@ -21,6 +21,16 @@ type OneDriveConfig = TenantConfig & {
     }
 }
 
+type AmazonS3Config = TenantConfig & {
+    properties: {
+        access_key_id: string | null,
+        secret_access_key: string | null,
+        region: string | null,
+        bucket: string | null,
+        upload_folder: string | null,
+    }
+}
+
 type FileMetadata = {
     tenant: string,
     driver: string,

@@ -74,6 +74,33 @@ class AmazonS3Driver {
             }
         }
     }
+
+    async downloadFile(idFile: string): Promise<DownloadSuccess | ServerError> {
+        const linkDownload = `https://${this.bucket}.s3.amazonaws.com/${idFile}`
+
+        try {
+            const fileBytesS3: Response = await fetch(linkDownload)
+            const buffer = await this.convert2buffer(fileBytesS3)
+            const fileType = await fileTypeFromBuffer(buffer)
+            return {
+                buffer: buffer,
+                name: idFile,
+                mimeType: fileType?.mime!,
+            }
+        } catch (error) {
+            console.log('Download failed. Could not download to AmazonS3.\n', error)
+            return {
+                status: 500,
+                errorMessage: 'Download failed. Could not download to AmazonS3.'
+            }
+        }
+    }
+
+    async convert2buffer(fileBytesOneDrive: Response): Promise<Buffer> {
+        const blob = await fileBytesOneDrive.blob()
+        const arrayBuffer = await blob.arrayBuffer()
+        return await Buffer.from(arrayBuffer)
+    }
 }
 
 export default AmazonS3Driver

@@ -90,6 +90,12 @@ jobs:
           echo $DOCUMENT
           mongosh "127.0.0.1:27017/multi_tenant_uploader" --eval "db.tenant_driver.insertOne($DOCUMENT)"
 
+      - name: Machine IP in mongo url string
+        run: |
+          MONGO_HOST_IP=$(ip addr show eth0 | awk '/inet / {print $2}' | cut -d '/' -f 1)
+          echo $MONGO_HOST_IP
+          mongosh "mongodb://$MONGO_HOST_IP:27017/multi_tenant_uploader" --eval "print('Hello, World!')"
+
       - name: access database using url string
         run: |
           mongosh "mongodb://127.0.0.1:27017/multi_tenant_uploader" --eval "print('Hello, World!')"

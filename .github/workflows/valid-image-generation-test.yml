@@ -26,6 +26,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: find out machine ip to put in .env
+        run: ip addr show
+
       - name: Install MongoDB Community Edition
         run: |
           sudo apt-get install gnupg

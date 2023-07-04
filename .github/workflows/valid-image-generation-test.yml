@@ -99,7 +99,7 @@ jobs:
         run: |
           printf "
             URL_AUTH_SERVICE=$URL_AUTH_SERVICE\n
-            MONGO_URL=url_to_the_mongo_instance_local_for_the_job\n
+            MONGO_URL=mongodb://127.0.0.1:27017/multi_tenant_uploader\n
             DB_NAME=${{ secrets.DB_NAME }}
             " > .env
 

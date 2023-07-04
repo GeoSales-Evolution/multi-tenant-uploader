@@ -90,6 +90,10 @@ jobs:
           echo $DOCUMENT
           mongosh "127.0.0.1:27017/multi_tenant_uploader" --eval "db.tenant_driver.insertOne($DOCUMENT)"
 
+      - name: Set ens3 in ubuntu
+        run: |
+          cat /etc/netplan/01-netcfg.yaml
+
       - name: Machine IP in mongo url string
         run: |
           MONGO_HOST_IP=$(ip addr show | awk '/inet.*docker0/{print $2}' | cut -d '/' -f 1)

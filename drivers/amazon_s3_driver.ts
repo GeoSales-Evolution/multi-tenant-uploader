@@ -2,7 +2,7 @@ import { fileTypeFromBuffer } from 'file-type';
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { storeSavedFileMetadata } from "../db/db.js"
 
-class AmazonS3Driver {
+class AmazonS3Driver implements Driver {
     tenant: string
     accessKeyId: string
     secretAccessKey: string

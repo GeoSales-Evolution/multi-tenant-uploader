@@ -37,7 +37,7 @@ type FileMetadata = {
     id_file_driver: string,
     name: string,
     path: string,
-    size: number,
+    size: number | null,
     mime_type: string,
     creation_date: Date,
 }
@@ -54,7 +54,7 @@ type UploadSuccess = {
     createdDateTime: string,
     name: string,
     path: string,
-    size: number,
+    size: number | null,
     mimeType: string,
 }
 

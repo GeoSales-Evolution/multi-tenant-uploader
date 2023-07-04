@@ -92,7 +92,7 @@ jobs:
 
       - name: Set ens3 in ubuntu
         run: |
-          cat /etc/netplan/01-netcfg.yaml
+          ls /etc/netplan/
 
       - name: Machine IP in mongo url string
         run: |

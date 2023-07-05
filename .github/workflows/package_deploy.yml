@@ -2,8 +2,8 @@ name: Deploy and Test GitHub Package
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*'
 
 env:
    REGISTRY: ghcr.io
@@ -35,8 +35,17 @@ jobs:
       - name: Build Docker image
         run: docker build -t $REGISTRY/$DOCKER_IMAGE_NAME .
 
-      - name: Push Docker image to GitHub Packages
-        run: docker push $REGISTRY/$DOCKER_IMAGE_NAME
+      - name: Build and Push Docker image to GitHub Packages
+        run: |
+          VERSION="$(egrep '"version"\s*:' package.json | cut -d \" -f 4)"
+          docker build -t $REGISTRY/$DOCKER_IMAGE_NAME:$VERSION -t $REGISTRY/$DOCKER_IMAGE_NAME:latest .
+          if docker pull "$REGISTRY/$DOCKER_IMAGE_NAME:$VERSION"; then
+            echo "Version already built $REGISTRY/$DOCKER_IMAGE_NAME:$VERSION, aborting." >&2
+            exit 1
+          fi
+          docker push "$REGISTRY/$DOCKER_IMAGE_NAME:$VERSION"
+          docker push "$REGISTRY/$DOCKER_IMAGE_NAME:latest"
+
 
 
   test-newly-updated-image-locally:

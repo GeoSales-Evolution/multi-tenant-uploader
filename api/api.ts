@@ -12,7 +12,7 @@ app.use(bodyParser.raw({type: 'application/octet-stream', limit : MAX_SHARED_API
 dotenvConfig()
 
 const authUrl = process.env.URL_AUTH_SERVICE;
-const whitelistedIP = process.env.WHITELISTED_IP
+const whitelistedIPs = process.env.WHITELISTED_IP?.split(",")
 
 app.post('/upload/:tenant', handleUpload)
 app.get('/download/:tenant/:idFile', handleDownload)
@@ -207,7 +207,7 @@ function getFilename(req: express.Request): string {
 }
 
 function isIPAuthorized(clientIP: string): boolean {
-    return clientIP === whitelistedIP
+    return whitelistedIPs?.includes(clientIP) as boolean
 }
 
 export default app

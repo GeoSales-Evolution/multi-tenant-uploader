@@ -107,8 +107,9 @@ async function handleAuth(req: express.Request): Promise<ServerError> {
         errorMessage: '',
     }
 
+    console.log(req.ip)
+
     if (isIPAuthorized(req.ip)) {
-        console.log(req.ip)
         return authOk
     }
 

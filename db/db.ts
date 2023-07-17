@@ -15,15 +15,10 @@ try {
     throw error
 }
 
-async function getTenantConfig(tenant: string, driver: string): Promise<TenantConfig | null> {
+async function getTenantConfig(tenant: string): Promise<TenantConfig | null> {
     const db: Db = client.db(dbName)
     const tenantDoc = await db.collection('tenant_driver')
-        .findOne(
-            {tenant: `${tenant}`},
-            {projection: {
-                    tenant: 1,
-                    drivers: {$elemMatch: {"type": `${driver}`}}
-            }})
+        .findOne({tenant: `${tenant}`})
 
     if (!tenantDoc) {
         return null

@@ -28,14 +28,7 @@ async function handleUpload(req: express.Request, res: express.Response) {
         return
     }
 
-    const driverHeader = req.headers['driver'] as string
-    if (!driverHeader) {
-        console.error(`Missing driver header at ${new Date()}`)
-        res.status(400).send('Missing driver header')
-        return
-    }
-
-    const checkinResponse = await checkin(req, driverHeader)
+    const checkinResponse = await checkin(req)
     if (checkinResponse.status !== 200) {
         console.error(`${checkinResponse.errorMessage} at ${new Date()}`)
         res.status(checkinResponse.status).send(checkinResponse.errorMessage)
@@ -63,7 +56,7 @@ async function handleDownload(req: express.Request, res: express.Response) {
         return
     }
 
-    const checkinResponse = await checkin(req, fileMetadata.driver)
+    const checkinResponse = await checkin(req)
     if (checkinResponse.status !== 200) {
         console.error(`${checkinResponse.errorMessage!} at ${new Date()}`)
         res.status(checkinResponse.status).send(checkinResponse.errorMessage!)
@@ -84,13 +77,13 @@ async function handleDownload(req: express.Request, res: express.Response) {
     res.send(downloadJsonResponse.buffer)
 }
 
-async function checkin(req: express.Request, driver: string): Promise<ServerError> {
+async function checkin(req: express.Request): Promise<ServerError> {
     const authResult = await handleAuth(req);
     if (authResult.status !== 200) {
         return authResult
     }
 
-    const configResult = await handleTenantAndDriverConfig(req, driver);
+    const configResult = await handleTenantAndDriverConfig(req);
     if (configResult.status !== 200) {
         return configResult
     }
@@ -145,8 +138,8 @@ async function handleAuth(req: express.Request): Promise<ServerError> {
     return authOk
 }
 
-async function handleTenantAndDriverConfig(req: express.Request, driver: string): Promise<ServerError> {
-    const tenantConfig = await getTenantConfig(req.params.tenant, driver);
+async function handleTenantAndDriverConfig(req: express.Request): Promise<ServerError> {
+    const tenantConfig = await getTenantConfig(req.params.tenant);
 
     if (!tenantConfig) {
         return {

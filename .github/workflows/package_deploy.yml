@@ -62,11 +62,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Run mongo container
+        run: |
+          cd db/mongo/
+          bash scripts/create_image.sh
+          bash scripts/run_container.sh
+
       - name: Create .env file
         run: |
+          CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mongo_db_4_uploader)
           printf "
             URL_AUTH_SERVICE=$URL_AUTH_SERVICE\n
-            MONGO_URL=url_to_the_mongo_instance_local_for_the_job\n
+            MONGO_URL=mongodb://myUserAdmin:tupperware@$CONTAINER_IP:27017/multi_tenant_uploader?authSource=admin\n
+            WHITELISTED_IP=localhost\n
             DB_NAME=${{ secrets.DB_NAME }}
             " > .env
 
@@ -84,4 +92,3 @@ jobs:
           else
             exit $?
           fi
-        continue-on-error: true

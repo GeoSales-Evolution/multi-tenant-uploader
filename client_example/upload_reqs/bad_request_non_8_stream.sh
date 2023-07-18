@@ -12,7 +12,6 @@ filename=$(echo "$filePath" | grep -oP "(?<=/)[^/]+$")
 response=$(curl -X POST \
     -H "Authorization: Bearer ${token}" \
     -H "Content-Disposition: attachment; filename=\"${filename}\"" \
-    -H "driver: ${driver}" \
     --data-binary "@${filePath}" \
     ${url}/${tenant}
 )

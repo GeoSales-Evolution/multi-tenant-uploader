@@ -21,13 +21,23 @@ type OneDriveConfig = TenantConfig & {
     }
 }
 
+type AmazonS3Config = TenantConfig & {
+    properties: {
+        access_key_id: string | null,
+        secret_access_key: string | null,
+        region: string | null,
+        bucket: string | null,
+        upload_folder: string | null,
+    }
+}
+
 type FileMetadata = {
     tenant: string,
     driver: string,
     id_file_driver: string,
     name: string,
     path: string,
-    size: number,
+    size: number | null,
     mime_type: string,
     creation_date: Date,
 }
@@ -44,7 +54,7 @@ type UploadSuccess = {
     createdDateTime: string,
     name: string,
     path: string,
-    size: number,
+    size: number | null,
     mimeType: string,
 }
 

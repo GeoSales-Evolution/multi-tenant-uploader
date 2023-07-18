@@ -1,0 +1,15 @@
+{
+  tenant: 'tenant name',
+  drivers: [
+    {
+      type: 'amazon_s3',
+      properties: {
+        access_key_id: 'key identifier of your aws user',
+        secret_access_key: 'value of the key',
+        region: 'region name of your bucket',
+        bucket: 'name of your bucket',
+        upload_folder: 'folder inside bucket where files will be uploaded to'
+      }
+    }
+  ]
+}

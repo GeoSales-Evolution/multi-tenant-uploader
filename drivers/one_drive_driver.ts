@@ -1,4 +1,4 @@
-import { getUploadMetadataById, storeSavedFileMetadata, updateAccessToken, updateTokenCreationDate } from "../db/db.js"
+import { getUploadMetadataById, storeSavedFileMetadata, updateAccessToken, updateTokenCreationDate, updateUrlsAndUserId } from "../db/db.js"
 
 class OneDriveDriver implements Driver {
     tenant: string
@@ -12,6 +12,7 @@ class OneDriveDriver implements Driver {
     clientSecret: string
     grantType: string
     scope: string
+    userId: string
 
     constructor(tenantConfig: OneDriveConfig) {
         this.tenant =  tenantConfig.tenant,
@@ -25,6 +26,7 @@ class OneDriveDriver implements Driver {
         this.clientSecret = tenantConfig.properties.client_secret!,
         this.grantType = tenantConfig.properties.grant_type!
         this.scope = tenantConfig.properties.scope!
+        this.userId = tenantConfig.properties.user_id!
     }
 
     async uploadFile(fileBytes: any, filename: string): Promise<UploadSuccess | ServerError> {
@@ -152,6 +154,10 @@ class OneDriveDriver implements Driver {
             this.accessToken = accessToken
             await updateTokenCreationDate(this.tenant, currentDate.toISOString())
             console.log(`Token to ${this.tenant} was generated.`)
+
+            if (this.userId.trim() === "") {
+                await this.getUserId();
+            }
         }
     }
 
@@ -187,6 +193,39 @@ class OneDriveDriver implements Driver {
         const blob = await fileBytesOneDrive.blob()
         const arrayBuffer = await blob.arrayBuffer()
         return await Buffer.from(arrayBuffer)
+    }
+
+    async getUserId(): Promise<void> {
+        try {
+            console.log('Trying to get UserId. Please wait...')
+
+            const metaDataUsers = await fetch(
+                'https://graph.microsoft.com/v1.0/users/',
+                {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${this.accessToken}`
+                    }
+                }
+            )
+            const jsonResponse = await metaDataUsers.json()
+
+            if (jsonResponse.value && jsonResponse.value.length > 0) {
+                this.userId = jsonResponse.value[0].id;
+                
+                this.uploadUrl = `https://graph.microsoft.com/v1.0/users/${this.userId}/drive/root:`;
+                this.downloadUrl = `https://graph.microsoft.com/v1.0/users/${this.userId}/drive/items`
+                
+                await updateUrlsAndUserId(this.tenant, this.userId, this.uploadUrl, this.downloadUrl);
+
+                console.log('UserId updated on driver.');
+            } else {
+                console.error(`ERROR: No users found in the response for '${this.tenant}'`);
+            }
+        } catch (error){
+            console.log('Error while getting UserID')
+            console.error(error)
+        }
     }
 }
 

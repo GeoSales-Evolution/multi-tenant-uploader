@@ -18,6 +18,7 @@ type OneDriveConfig = TenantConfig & {
         client_secret: string | null,
         grant_type: string | null,
         scope: string | null,
+        user_id: string | null,
     }
 }
 

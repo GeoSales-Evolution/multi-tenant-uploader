@@ -2,11 +2,13 @@ import express from 'express'
 import * as contentDisposition from 'content-disposition'
 import bodyParser from 'body-parser'
 import { config as dotenvConfig } from "dotenv-safe"
-import { getTenantConfig, getUploadMetadataById } from '../db/db.js'
+import { setTenantConfig, getTenantConfig, getUploadMetadataById } from '../db/db.js'
 import { downloadFile, initializeDriver, uploadFile } from '../drivers/driver_manager.js'
 
 const MAX_SHARED_API_FILE_SIZE = '15mb'
 const app = express()
+
+app.use(bodyParser.json())
 app.use(bodyParser.raw({type: 'application/octet-stream', limit : MAX_SHARED_API_FILE_SIZE}))
 
 dotenvConfig()
@@ -20,6 +22,26 @@ app.get('/download/:tenant/:idFile', handleDownload)
 app.get('/about', (req: express.Request, res: express.Response) => {
     res.send('This the Uploader App.')
 })
+
+app.post('/register/:tenant', registerDrive)
+
+async function registerDrive(req: express.Request, res: express.Response) {
+    try {
+        const tenant = req.params.tenant;
+        const body: Record<string, string> = req.body;
+
+        if (!body.driver) {
+            res.status(400).send('Driver not found');
+            return;
+        }
+
+        await setTenantConfig(tenant, body);
+        res.status(201).send({ message: 'Driver configuration registered successfully' });
+    } catch (error) {
+        console.error(`Error registering drive: ${error}`);
+        res.status(500).send(`Internal error when registering drive in tenant: ${req.params.tenant}`);
+    }
+}
 
 async function handleUpload(req: express.Request, res: express.Response) {
     if (req.headers['content-type'] !== 'application/octet-stream') {

@@ -47,6 +47,7 @@ Depending on which driver you will use for your tenant, you'll have to mount a d
 
 #### Microsoft OneDrive
 ```json
+{
   "tenant": "your_tenant_name",
   "drivers": [
     {
@@ -63,11 +64,11 @@ Depending on which driver you will use for your tenant, you'll have to mount a d
         "upload_folder": "folder to upload your files",
         "limit_file_size": "15mb",
         "download_url": "https://graph.microsoft.com/v1.0/users/<USER_ID>/drive/items",
-        "token_creation_date": ""
+        "token_creation_date": "2025-02-05T20:44:25.371Z"
       }
     }
   ]
-},
+}
 ```
 
 #### Amazon S3 - AWS

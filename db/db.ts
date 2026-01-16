@@ -15,6 +15,85 @@ try {
     throw error
 }
 
+async function setTenantConfig(tenant: string, config: Record<string, string>): Promise<void> {
+    const db: Db = client.db(dbName);
+    const collection = db.collection('tenant_driver');
+
+    const driverType = config.driver;
+
+    const tenantDoc = await collection.findOne({ tenant });
+
+    let driverConfig: any;
+    if (driverType === 'one_drive') {
+        driverConfig = {
+            type: driverType,
+            properties: generateOneDriveProperties(config),
+        };
+    } else if (driverType === 'amazon_s3') {
+        driverConfig = {
+            type: driverType,
+            properties: generateAmazonS3Properties(config),
+        };
+    }
+
+    if (!tenantDoc) {
+        await collection.insertOne({
+            tenant,
+            drivers: [driverConfig]
+        });
+    } else {
+        await collection.updateOne(
+            { tenant, "drivers.type": driverType },
+            { $set: { "drivers.$.properties": { ...driverConfig.properties } } },
+            { upsert: true }
+        );
+    }
+}
+
+function generateOneDriveProperties(input: any): any {
+    return {
+        access_token: "",
+        user_id: "",
+        tenant_id: input.tenant_id,
+        client_id: input.client_id,
+        client_secret: input.client_secret,
+        limit_file_size: "15mb",
+        grant_type: "client_credentials",
+        scope: "https://graph.microsoft.com/.default",
+        token_url: `https://login.microsoftonline.com/${input.tenant_id}/oauth2/v2.0/token`,
+        upload_url: `https://graph.microsoft.com/v1.0/users/<USER_ID>/drive/root:`,
+        upload_folder: "uploaderFolder",
+        download_url: `https://graph.microsoft.com/v1.0/users/<USER_ID>/drive/items`,
+        token_creation_date: new Date(1, 0, 1).toDateString()
+      };
+}
+
+async function updateUrlsAndUserId(tenant: string, userId: string, uploadUrl: string, downloadUrl: string): Promise<void> {
+    const db: Db = client.db(dbName)
+
+    db.collection('tenant_driver').updateOne(
+        { tenant: `${tenant}` },
+        {
+            $set: {
+                "drivers.$[i].properties.user_id": userId,
+                "drivers.$[i].properties.upload_url": uploadUrl,
+                "drivers.$[i].properties.download_url": downloadUrl,
+            }
+        },
+        {arrayFilters: [{"i.type": "one_drive"}]}
+     )
+}
+
+function generateAmazonS3Properties(input: any): any {
+    return {
+        access_key_id: input.access_key_id,
+        secret_access_key: input.secret_access_key,
+        region: input.region,
+        bucket: input.bucket,
+        upload_folder: "uploaderFolder"
+    }
+}
+
 async function getTenantConfig(tenant: string): Promise<TenantConfig | null> {
     const db: Db = client.db(dbName)
     const tenantDoc = await db.collection('tenant_driver')
@@ -93,7 +172,9 @@ async function getUploadMetadataById(id: string): Promise<FileMetadata | null> {
 }
 
 export {
+    setTenantConfig,
     getTenantConfig,
+    updateUrlsAndUserId,
     updateAccessToken,
     updateTokenCreationDate,
     storeSavedFileMetadata,
